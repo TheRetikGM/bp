@@ -1,8 +1,4 @@
-use music_sheet_gen::lsystem::{
-    l_rewriter::{CSSLRewriter, LRewriter},
-    l_rule::ToCSSLRule,
-    l_rule_set::CSSLRuleSet,
-};
+use music_sheet_gen::lsystem::{l_rule::ToCSSLRule, *};
 
 fn create_rewriter_simple() -> CSSLRewriter {
     CSSLRewriter::new(CSSLRuleSet::new(

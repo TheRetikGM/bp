@@ -1,7 +1,4 @@
-use music_sheet_gen::lsystem::{
-    l_rule::{CSSLRule, LRule},
-    l_rule_set::{CSSLRuleSet, LRuleSet as _},
-};
+use music_sheet_gen::lsystem::*;
 
 fn create_basic_set() -> CSSLRuleSet {
     CSSLRuleSet::new(vec![

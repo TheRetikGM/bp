@@ -31,7 +31,7 @@ pub trait LSystem: Display + std::fmt::Debug {
 }
 
 #[derive(Debug)]
-struct CSSLSystem {
+pub struct CSSLSystem {
     rewriter: CSSLRewriter,
     axiom: String,
     state: LSystemState,
