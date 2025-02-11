@@ -1,4 +1,4 @@
-use crate::ls::{
+use crate::lsystem::{
     l_rule::LRule,
     l_rule_set::{CSSLRuleSet, LRuleSet},
 };

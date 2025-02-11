@@ -1,6 +1,6 @@
 use derive_getters::Getters;
 
-use crate::ls::{
+use crate::lsystem::{
     l_rewriter::{CSSLRewriter, LRewriter},
     l_rule::CSSLRule,
     l_rule_set::CSSLRuleSet,

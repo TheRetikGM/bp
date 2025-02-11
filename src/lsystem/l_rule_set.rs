@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use crate::ls::l_rule::{CSSLRule, LRule};
+use crate::lsystem::l_rule::{CSSLRule, LRule};
 
 /// Set of all rules in a given L-System
 pub trait LRuleSet: Display {

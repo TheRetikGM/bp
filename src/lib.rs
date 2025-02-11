@@ -1,3 +1,3 @@
 pub mod error;
 pub mod ext;
-pub mod ls;
+pub mod lsystem;

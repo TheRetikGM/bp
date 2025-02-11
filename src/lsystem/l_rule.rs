@@ -35,7 +35,7 @@ impl LRule for CSSLRule {
     ///
     /// # EXAMPLES
     /// ```
-    /// # use music_sheet_gen::ls::l_rule::*;
+    /// # use music_sheet_gen::lsystem::l_rule::*;
     /// let r = CSSLRule::new("ab", "cd", 1.);
     /// assert!(r.matches("ab"));
     /// assert!(r.matches("12345ab"));
@@ -75,14 +75,14 @@ impl CSSLRule {
     ///
     /// # Examples
     /// ```
-    /// # use music_sheet_gen::ls::l_rule::*;
+    /// # use music_sheet_gen::lsystem::l_rule::*;
     /// let r = CSSLRule::from("a->b%1/2").unwrap();
     /// assert!(r.left() == "a");
     /// assert!(r.right() == "b");
     /// assert!(*r.p() == 1./2.);
     /// ```
     /// ```
-    /// # use music_sheet_gen::ls::l_rule::*;
+    /// # use music_sheet_gen::lsystem::l_rule::*;
     /// let r = CSSLRule::from("abc -> def % 1/4").unwrap();
     /// assert!(r.left() == "abc");
     /// assert!(r.right() == "def");

@@ -1,4 +1,4 @@
-use music_sheet_gen::ls::{
+use music_sheet_gen::lsystem::{
     l_rewriter::{CSSLRewriter, LRewriter},
     l_rule::ToCSSLRule,
     l_rule_set::CSSLRuleSet,

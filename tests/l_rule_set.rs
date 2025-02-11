@@ -1,4 +1,4 @@
-use music_sheet_gen::ls::{
+use music_sheet_gen::lsystem::{
     l_rule::{CSSLRule, LRule},
     l_rule_set::{CSSLRuleSet, LRuleSet as _},
 };
@@ -67,7 +67,7 @@ fn select_simple2() {
     let set = CSSLRuleSet::new(
         ["a -> 1 % 1/1", "b -> 2 % 1/1", "d -> 3 % 1/1"]
             .iter()
-            .map(|r| music_sheet_gen::ls::l_rule::ToCSSLRule::to_csslrule(&r).unwrap())
+            .map(|r| music_sheet_gen::lsystem::l_rule::ToCSSLRule::to_csslrule(&r).unwrap())
             .collect(),
     );
 
