@@ -6,11 +6,13 @@
 mod lilypond;
 mod score_parser;
 
-pub use score_parser::ScoreParser;
+use std::fmt::Display;
 
-pub trait ToLily {
-    fn to_lily(&self) -> String;
-}
+pub use lilypond::LilyNote;
+pub use lilypond::LilyStave;
+pub use lilypond::LilySymbol;
+pub use lilypond::Lilypond;
+pub use score_parser::ScoreParser;
 
 #[derive(Debug, Clone)]
 pub enum LilyClef {
@@ -18,13 +20,16 @@ pub enum LilyClef {
     Bass,
 }
 
-impl ToLily for LilyClef {
-    fn to_lily(&self) -> String {
-        match self {
-            LilyClef::Treble => "\\clef treble",
-            LilyClef::Bass => "\\clef bass",
-        }
-        .to_owned()
+impl Display for LilyClef {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                LilyClef::Treble => "\\clef treble",
+                LilyClef::Bass => "\\clef bass",
+            }
+        )
     }
 }
 
@@ -40,32 +45,35 @@ pub enum LilyNoteName {
     Hes, H, His,
 }
 
-impl ToLily for LilyNoteName {
-    fn to_lily(&self) -> String {
-        match self {
-            LilyNoteName::Ces => "ces",
-            LilyNoteName::C => "c",
-            LilyNoteName::Cis => "cis",
-            LilyNoteName::Des => "des",
-            LilyNoteName::D => "d",
-            LilyNoteName::Dis => "dis",
-            LilyNoteName::Es => "es",
-            LilyNoteName::E => "e",
-            LilyNoteName::Eis => "eis",
-            LilyNoteName::Fes => "fes",
-            LilyNoteName::F => "f",
-            LilyNoteName::Fis => "fis",
-            LilyNoteName::Ges => "ges",
-            LilyNoteName::G => "g",
-            LilyNoteName::Gis => "gis",
-            LilyNoteName::As => "as",
-            LilyNoteName::A => "a",
-            LilyNoteName::Ais => "ais",
-            LilyNoteName::Hes => "hes",
-            LilyNoteName::H => "h",
-            LilyNoteName::His => "his",
-        }
-        .to_owned()
+impl Display for LilyNoteName {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                LilyNoteName::Ces => "ces",
+                LilyNoteName::C => "c",
+                LilyNoteName::Cis => "cis",
+                LilyNoteName::Des => "des",
+                LilyNoteName::D => "d",
+                LilyNoteName::Dis => "dis",
+                LilyNoteName::Es => "es",
+                LilyNoteName::E => "e",
+                LilyNoteName::Eis => "eis",
+                LilyNoteName::Fes => "fes",
+                LilyNoteName::F => "f",
+                LilyNoteName::Fis => "fis",
+                LilyNoteName::Ges => "ges",
+                LilyNoteName::G => "g",
+                LilyNoteName::Gis => "gis",
+                LilyNoteName::As => "as",
+                LilyNoteName::A => "a",
+                LilyNoteName::Ais => "ais",
+                LilyNoteName::Hes => "hes",
+                LilyNoteName::H => "h",
+                LilyNoteName::His => "his",
+            }
+        )
     }
 }
 
@@ -75,13 +83,16 @@ pub enum LilyKeyType {
     Minor,
 }
 
-impl ToLily for LilyKeyType {
-    fn to_lily(&self) -> String {
-        match self {
-            LilyKeyType::Major => "\\major",
-            LilyKeyType::Minor => "\\minor",
-        }
-        .to_owned()
+impl Display for LilyKeyType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                LilyKeyType::Major => "\\major",
+                LilyKeyType::Minor => "\\minor",
+            }
+        )
     }
 }
 
@@ -91,19 +102,22 @@ pub enum LilyNoteLength {
     L1, L2, L4, L8, L16, L32, L64, L128
 }
 
-impl ToLily for LilyNoteLength {
-    fn to_lily(&self) -> String {
-        match self {
-            LilyNoteLength::L1 => "",
-            LilyNoteLength::L2 => "2",
-            LilyNoteLength::L4 => "4",
-            LilyNoteLength::L8 => "8",
-            LilyNoteLength::L16 => "16",
-            LilyNoteLength::L32 => "32",
-            LilyNoteLength::L64 => "64",
-            LilyNoteLength::L128 => "128",
-        }
-        .to_owned()
+impl Display for LilyNoteLength {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                LilyNoteLength::L1 => "",
+                LilyNoteLength::L2 => "2",
+                LilyNoteLength::L4 => "4",
+                LilyNoteLength::L8 => "8",
+                LilyNoteLength::L16 => "16",
+                LilyNoteLength::L32 => "32",
+                LilyNoteLength::L64 => "64",
+                LilyNoteLength::L128 => "128",
+            }
+        )
     }
 }
 
@@ -122,9 +136,9 @@ impl LilyTime {
     }
 }
 
-impl ToLily for LilyTime {
-    fn to_lily(&self) -> String {
-        format!("\\time {}/{}", self.nom, self.denom.to_lily())
+impl Display for LilyTime {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "\\time {}/{}", self.nom, self.denom)
     }
 }
 
@@ -134,9 +148,9 @@ pub struct LilyKey {
     pub key_type: LilyKeyType,
 }
 
-impl ToLily for LilyKey {
-    fn to_lily(&self) -> String {
-        format!("\\key {} {}", self.note.to_lily(), self.key_type.to_lily())
+impl Display for LilyKey {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "\\key {} {}", self.note, self.key_type)
     }
 }
 
@@ -146,14 +160,20 @@ pub enum OctaveRelative {
     Down(u8),
 }
 
-impl ToLily for OctaveRelative {
-    fn to_lily(&self) -> String {
+impl Display for OctaveRelative {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let (c, times) = match self {
             OctaveRelative::Up(times) => ('\'', times),
             OctaveRelative::Down(times) => (',', times),
         };
 
-        std::iter::repeat(c).take(*times as usize).collect()
+        write!(
+            f,
+            "{}",
+            std::iter::repeat(c)
+                .take(*times as usize)
+                .collect::<String>()
+        )
     }
 }
 
@@ -162,35 +182,35 @@ mod tests {
     use super::*;
 
     #[test]
-    fn to_lily_octave_relative_up() {
-        assert_eq!(OctaveRelative::Up(0).to_lily(), "");
-        assert_eq!(OctaveRelative::Up(1).to_lily(), "'");
-        assert_eq!(OctaveRelative::Up(3).to_lily(), "'''");
-        assert_eq!(OctaveRelative::Up(5).to_lily(), "'''''");
+    fn to_string_octave_relative_up() {
+        assert_eq!(OctaveRelative::Up(0).to_string(), "");
+        assert_eq!(OctaveRelative::Up(1).to_string(), "'");
+        assert_eq!(OctaveRelative::Up(3).to_string(), "'''");
+        assert_eq!(OctaveRelative::Up(5).to_string(), "'''''");
     }
 
     #[test]
-    fn to_lily_octave_relative_down() {
-        assert_eq!(OctaveRelative::Down(0).to_lily(), "");
-        assert_eq!(OctaveRelative::Down(1).to_lily(), ",");
-        assert_eq!(OctaveRelative::Down(3).to_lily(), ",,,");
-        assert_eq!(OctaveRelative::Down(5).to_lily(), ",,,,,");
+    fn to_string_octave_relative_down() {
+        assert_eq!(OctaveRelative::Down(0).to_string(), "");
+        assert_eq!(OctaveRelative::Down(1).to_string(), ",");
+        assert_eq!(OctaveRelative::Down(3).to_string(), ",,,");
+        assert_eq!(OctaveRelative::Down(5).to_string(), ",,,,,");
     }
 
     #[test]
-    fn to_lily_clef() {
-        assert_eq!(LilyClef::Treble.to_lily(), "\\clef treble");
-        assert_eq!(LilyClef::Bass.to_lily(), "\\clef bass");
+    fn to_string_clef() {
+        assert_eq!(LilyClef::Treble.to_string(), "\\clef treble");
+        assert_eq!(LilyClef::Bass.to_string(), "\\clef bass");
     }
 
     #[test]
-    fn to_lily_key() {
+    fn to_string_key() {
         assert_eq!(
             LilyKey {
                 note: LilyNoteName::Cis,
                 key_type: LilyKeyType::Major
             }
-            .to_lily(),
+            .to_string(),
             "\\key cis \\major"
         );
 
@@ -199,19 +219,19 @@ mod tests {
                 note: LilyNoteName::A,
                 key_type: LilyKeyType::Minor
             }
-            .to_lily(),
+            .to_string(),
             "\\key a \\minor"
         );
     }
 
     #[test]
-    fn to_lily_time() {
+    fn to_string_time() {
         assert_eq!(
             LilyTime {
                 nom: 3,
                 denom: LilyNoteLength::L4
             }
-            .to_lily(),
+            .to_string(),
             "\\time 3/4"
         );
 
@@ -220,7 +240,7 @@ mod tests {
                 nom: 6,
                 denom: LilyNoteLength::L8
             }
-            .to_lily(),
+            .to_string(),
             "\\time 6/8"
         );
     }

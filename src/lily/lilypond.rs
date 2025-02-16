@@ -3,9 +3,9 @@
 //! ### Author
 //! Jakub Kloub (xkloub03), VUT FIT
 
-use crate::lily::{
-    LilyClef, LilyKey, LilyNoteLength, LilyNoteName, LilyTime, OctaveRelative, ToLily,
-};
+use std::fmt::Display;
+
+use crate::lily::{LilyClef, LilyKey, LilyNoteLength, LilyNoteName, LilyTime, OctaveRelative};
 
 #[derive(Debug, Clone)]
 pub struct Lilypond {
@@ -13,11 +13,11 @@ pub struct Lilypond {
     pub staves: Vec<LilyStave>,
 }
 
-impl ToLily for Lilypond {
-    fn to_lily(&self) -> String {
-        let staves: String = self.staves.iter().map(|s| s.to_lily()).collect();
+impl Display for Lilypond {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let staves: String = self.staves.iter().map(|s| s.to_string()).collect();
 
-        format!("\\version \"{}\"\n<<{}>>", self.version, staves)
+        write!(f, "\\version \"{}\"\n<<{}>>", self.version, staves)
     }
 }
 
@@ -26,16 +26,16 @@ pub struct LilyStave {
     pub symbols: Vec<LilySymbol>,
 }
 
-impl ToLily for LilyStave {
-    fn to_lily(&self) -> String {
+impl Display for LilyStave {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let symbols = self
             .symbols
             .iter()
-            .map(|s| s.to_lily())
+            .map(|s| s.to_string())
             .collect::<Vec<_>>()
             .join(" ");
 
-        format!("\n\\new Staff {{ {} }}\n", symbols)
+        write!(f, "\n\\new Staff {{ {} }}\n", symbols)
     }
 }
 
@@ -47,13 +47,13 @@ pub enum LilySymbol {
     Note(LilyNote),
 }
 
-impl ToLily for LilySymbol {
-    fn to_lily(&self) -> String {
+impl Display for LilySymbol {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            LilySymbol::Clef(sym) => sym.to_lily(),
-            LilySymbol::Key(sym) => sym.to_lily(),
-            LilySymbol::Time(sym) => sym.to_lily(),
-            LilySymbol::Note(sym) => sym.to_lily(),
+            LilySymbol::Clef(sym) => sym.fmt(f),
+            LilySymbol::Key(sym) => sym.fmt(f),
+            LilySymbol::Time(sym) => sym.fmt(f),
+            LilySymbol::Note(sym) => sym.fmt(f),
         }
     }
 }
@@ -65,13 +65,12 @@ pub struct LilyNote {
     pub length: LilyNoteLength,
 }
 
-impl ToLily for LilyNote {
-    fn to_lily(&self) -> String {
-        format!(
+impl Display for LilyNote {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
             "{}{}{}",
-            self.note_name.to_lily(),
-            self.octave_relative.to_lily(),
-            self.length.to_lily()
+            self.note_name, self.octave_relative, self.length
         )
     }
 }
@@ -83,14 +82,14 @@ mod tests {
     use super::*;
 
     #[test]
-    fn to_lily_note() {
+    fn to_string_note() {
         assert_eq!(
             LilyNote {
                 note_name: LilyNoteName::Des,
                 octave_relative: OctaveRelative::Up(2),
                 length: LilyNoteLength::L8,
             }
-            .to_lily(),
+            .to_string(),
             "des''8"
         );
 
@@ -100,13 +99,13 @@ mod tests {
                 octave_relative: OctaveRelative::Down(1),
                 length: LilyNoteLength::L1,
             }
-            .to_lily(),
+            .to_string(),
             "c,"
         );
     }
 
     #[test]
-    fn to_lily_symbol() {
+    fn to_string_symbol() {
         // Arrange
         let key_c_major = LilyKey {
             note: LilyNoteName::C,
@@ -120,17 +119,17 @@ mod tests {
 
         // Act && Assert
         assert_eq!(
-            LilySymbol::Clef(LilyClef::Treble).to_lily(),
-            LilyClef::Treble.to_lily()
+            LilySymbol::Clef(LilyClef::Treble).to_string(),
+            LilyClef::Treble.to_string()
         );
         assert_eq!(
-            LilySymbol::Key(key_c_major.clone()).to_lily(),
-            key_c_major.to_lily()
+            LilySymbol::Key(key_c_major.clone()).to_string(),
+            key_c_major.to_string()
         );
-        assert_eq!(LilySymbol::Time(LilyTime::c()).to_lily(), "\\time 4/4");
+        assert_eq!(LilySymbol::Time(LilyTime::c()).to_string(), "\\time 4/4");
         assert_eq!(
-            LilySymbol::Note(note_c1_4.clone()).to_lily(),
-            note_c1_4.to_lily()
+            LilySymbol::Note(note_c1_4.clone()).to_string(),
+            note_c1_4.to_string()
         );
     }
 
@@ -163,16 +162,16 @@ mod tests {
     }
 
     #[test]
-    fn to_lily_stave() {
+    fn to_string_stave() {
         // Arrange
         let (d_maj, d_maj_str) = stave_d_maj();
 
         // Act && Assert
-        assert_eq!(d_maj.to_lily().trim(), d_maj_str);
+        assert_eq!(d_maj.to_string().trim(), d_maj_str);
     }
 
     #[test]
-    fn to_lily_lilypond() {
+    fn to_string_lilypond() {
         // Arrange
         let (d_maj, _) = stave_d_maj();
         let lilypond = Lilypond {
@@ -182,12 +181,8 @@ mod tests {
 
         // Act && Assert
         assert_eq!(
-            lilypond.to_lily().trim(),
-            format!(
-                "\\version \"1.2.3\"\n<<{}{}>>",
-                d_maj.to_lily(),
-                d_maj.to_lily()
-            )
+            lilypond.to_string().trim(),
+            format!("\\version \"1.2.3\"\n<<{}{}>>", d_maj, d_maj)
         );
     }
 }
