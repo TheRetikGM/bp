@@ -1,7 +1,20 @@
+//! Module which defines the stored structure of a score
+//!
+//! ### Author
+//! Jakub Kloub (xkloub03), VUT FIT
+
 mod score;
+mod stave;
 mod symbol;
-mod track;
 pub mod visitor;
+
+pub use score::Score;
+pub use score::ScoreInfo;
+pub use stave::Stave;
+pub use symbol::Chord;
+pub use symbol::Note;
+pub use symbol::Pitch;
+pub use symbol::Symbol;
 
 #[rustfmt::skip] #[derive(Debug)]
 pub enum Clef { Treble, Bass }
@@ -23,12 +36,12 @@ pub enum Duration { D1, D2, D4, D8, D16, D32, D64, D128 }
 
 #[derive(Debug)]
 pub struct KeySignature {
-    note: NoteName,
-    signature_type: KeySignatureType,
+    pub note: NoteName,
+    pub signature_type: KeySignatureType,
 }
 
 #[derive(Debug)]
 pub struct TimeSignature {
-    beat_count: u32,
-    single_beat_note: Duration,
+    pub beat_count: u32,
+    pub single_beat_note: Duration,
 }

@@ -3,7 +3,7 @@
 //! ### Author
 //! Jakub Kloub (xkloub03), VUT FIT
 
-use crate::notation::{track::Track, visitor::SheetVisitable};
+use crate::notation::{stave::Stave, visitor::SheetVisitable};
 
 type Tempo = u32;
 
@@ -16,7 +16,7 @@ pub struct ScoreInfo {
 
 #[derive(Debug)]
 pub struct Score {
-    pub tracks: Vec<Track>,
+    pub tracks: Vec<Stave>,
     pub info: ScoreInfo,
     pub tempo: Tempo,
 }

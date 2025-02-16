@@ -3,7 +3,7 @@
 //! ### Author
 //! Jakub Kloub (xkloub03), VUT FIT
 
-use crate::notation::{score::Score, symbol::Symbol, track::Track};
+use crate::notation::{score::Score, stave::Stave, symbol::Symbol};
 
 pub enum VisitOrder {
     Pre,
@@ -11,9 +11,9 @@ pub enum VisitOrder {
 }
 
 pub trait SheetVisitor {
-    fn visit_score(&self, score: &Score);
-    fn visit_track(&self, score: &Track);
-    fn visit_symbol(&self, score: &Symbol);
+    fn visit_score(&mut self, score: &Score);
+    fn visit_track(&mut self, score: &Stave);
+    fn visit_symbol(&mut self, score: &Symbol);
 
     fn order(&self) -> &VisitOrder;
 }

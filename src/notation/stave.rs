@@ -6,11 +6,11 @@
 use crate::notation::{symbol::Symbol, visitor::SheetVisitable};
 
 #[derive(Debug, Default)]
-pub struct Track {
+pub struct Stave {
     pub symbols: Vec<Symbol>,
 }
 
-impl SheetVisitable for Track {
+impl SheetVisitable for Stave {
     fn accept(&self, visitor: &mut impl super::visitor::SheetVisitor) {
         match visitor.order() {
             super::visitor::VisitOrder::Pre => {
