@@ -3,7 +3,7 @@
 //! ### Author
 //! Jakub Kloub
 
-use crate::notation::{visitor::SheetVisitable, *};
+use crate::notation::*;
 
 #[derive(Debug, Clone)]
 pub struct Pitch {
@@ -33,10 +33,4 @@ pub enum Symbol {
     Chord(Chord),
     Note(Note),
     Rest(Duration),
-}
-
-impl SheetVisitable for Symbol {
-    fn accept(&self, visitor: &mut impl visitor::SheetVisitor) {
-        visitor.visit_symbol(self);
-    }
 }

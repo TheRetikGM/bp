@@ -4,7 +4,6 @@
 //! Jakub Kloub (xkloub03), VUT FIT
 
 mod lilypond;
-mod score_parser;
 
 use std::fmt::Display;
 
@@ -12,7 +11,6 @@ pub use lilypond::LilyNote;
 pub use lilypond::LilyStave;
 pub use lilypond::LilySymbol;
 pub use lilypond::Lilypond;
-pub use score_parser::ScoreParser;
 
 use crate::notation::{
     Accidental, Clef, Duration, KeySignature, KeySignatureType, NoteName, Octave, Pitch,

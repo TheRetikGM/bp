@@ -6,7 +6,6 @@
 mod score;
 mod stave;
 mod symbol;
-pub mod visitor;
 
 pub use score::Score;
 pub use score::ScoreInfo;
