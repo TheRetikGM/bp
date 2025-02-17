@@ -5,7 +5,10 @@
 
 use std::fmt::Display;
 
-use crate::lily::{LilyClef, LilyKey, LilyNoteLength, LilyNoteName, LilyTime, OctaveRelative};
+use crate::{
+    lily::{LilyClef, LilyKey, LilyNoteLength, LilyNoteName, LilyTime, OctaveRelative},
+    notation::{Note, Score, Stave, Symbol},
+};
 
 #[derive(Debug, Clone)]
 pub struct Lilypond {
@@ -13,11 +16,29 @@ pub struct Lilypond {
     pub staves: Vec<LilyStave>,
 }
 
+impl Default for Lilypond {
+    fn default() -> Self {
+        Self {
+            version: "2.25.20".to_string(),
+            staves: Default::default(),
+        }
+    }
+}
+
 impl Display for Lilypond {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let staves: String = self.staves.iter().map(|s| s.to_string()).collect();
 
         write!(f, "\\version \"{}\"\n<<{}>>", self.version, staves)
+    }
+}
+
+impl From<Score> for Lilypond {
+    fn from(value: Score) -> Self {
+        Self {
+            staves: value.tracks.into_iter().map(Into::into).collect(),
+            version: "2.25.2".to_string(),
+        }
     }
 }
 
@@ -39,12 +60,32 @@ impl Display for LilyStave {
     }
 }
 
+impl From<Stave> for LilyStave {
+    fn from(stave: Stave) -> Self {
+        Self {
+            symbols: stave.symbols.into_iter().map(Into::into).collect(),
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub enum LilySymbol {
     Clef(LilyClef),
     Key(LilyKey),
     Time(LilyTime),
     Note(LilyNote),
+}
+
+impl From<Symbol> for LilySymbol {
+    fn from(sym: Symbol) -> Self {
+        match sym {
+            Symbol::Clef(clef) => LilySymbol::Clef(clef.into()),
+            Symbol::TimeSignature(time_signature) => LilySymbol::Time(time_signature.into()),
+            Symbol::KeySignature(key_signature) => LilySymbol::Key(key_signature.into()),
+            Symbol::Note(note) => LilySymbol::Note(note.into()),
+            _ => todo!("Not implemented yet"),
+        }
+    }
 }
 
 impl Display for LilySymbol {
@@ -63,6 +104,18 @@ pub struct LilyNote {
     pub note_name: LilyNoteName,
     pub octave_relative: OctaveRelative,
     pub length: LilyNoteLength,
+}
+
+impl From<Note> for LilyNote {
+    fn from(note: Note) -> Self {
+        let octave = note.pitch.octave;
+
+        Self {
+            note_name: note.pitch.into(),
+            length: note.duration.into(),
+            octave_relative: octave.into(),
+        }
+    }
 }
 
 impl Display for LilyNote {

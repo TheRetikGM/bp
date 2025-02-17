@@ -5,11 +5,11 @@
 
 use crate::notation::{visitor::SheetVisitable, *};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Pitch {
     pub note_name: NoteName,
     pub octave: Octave,
-    pub accidental: Accidental,
+    pub accidental: Option<Accidental>,
 }
 
 #[derive(Debug)]
