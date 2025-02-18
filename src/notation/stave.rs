@@ -5,7 +5,7 @@
 
 use crate::notation::symbol::Symbol;
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct Stave {
     pub symbols: Vec<Symbol>,
 }

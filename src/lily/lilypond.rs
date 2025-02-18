@@ -36,7 +36,7 @@ impl Display for Lilypond {
 impl From<Score> for Lilypond {
     fn from(value: Score) -> Self {
         Self {
-            staves: value.tracks.into_iter().map(Into::into).collect(),
+            staves: value.staves.into_iter().map(Into::into).collect(),
             version: "2.25.2".to_string(),
         }
     }
