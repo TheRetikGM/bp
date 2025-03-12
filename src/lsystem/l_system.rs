@@ -30,6 +30,7 @@ pub trait LSystem: Display + std::fmt::Debug {
     fn rewriter(&self) -> &impl LRewriter;
 }
 
+/// Context-Sensitive Stochastic L-System
 #[derive(Debug)]
 pub struct CSSLSystem {
     rewriter: CSSLRewriter,
@@ -38,7 +39,12 @@ pub struct CSSLSystem {
 }
 
 impl CSSLSystem {
-    fn new(axiom: String, rules: &[&str]) -> Self {
+    /// Create new CSSLSystem
+    ///
+    /// # Parameters
+    /// - **axiom** Small string that will be expanded by rules
+    /// - **rules** Stochastic context-sennsitive string rewriting rules
+    pub fn new(axiom: String, rules: &[&str]) -> Self {
         Self {
             rewriter: CSSLRewriter::new(CSSLRuleSet::new(
                 rules.iter().map(|s| CSSLRule::from(s).unwrap()).collect(),

@@ -3,13 +3,16 @@
 //! ### Author
 //! Jakub Kloub (xkloub03), VUT FIT
 
+mod lily_note;
+mod lily_stave;
+mod lily_symbol;
 mod lilypond;
 
 use std::fmt::Display;
 
-pub use lilypond::LilyNote;
-pub use lilypond::LilyStave;
-pub use lilypond::LilySymbol;
+pub use lily_note::LilyNote;
+pub use lily_stave::LilyStave;
+pub use lily_symbol::LilySymbol;
 pub use lilypond::Lilypond;
 
 use crate::notation::{
@@ -185,7 +188,7 @@ impl Display for LilyNoteLength {
             f,
             "{}",
             match self {
-                LilyNoteLength::L1 => "",
+                LilyNoteLength::L1 => "1",
                 LilyNoteLength::L2 => "2",
                 LilyNoteLength::L4 => "4",
                 LilyNoteLength::L8 => "8",
@@ -205,7 +208,7 @@ pub struct LilyTime {
 }
 
 impl LilyTime {
-    fn c() -> Self {
+    pub fn c() -> Self {
         Self {
             nom: 4,
             denom: LilyNoteLength::L4,

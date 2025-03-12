@@ -21,8 +21,8 @@ pub struct MusicInterpret {
 /// - Add tact information such as timing, name of the score, author tempo..
 #[derive(Debug, Clone)]
 pub struct MusicIntInfo {
-    key: KeySignature,
-    first_note: Note,
+    pub key: KeySignature,
+    pub first_note: Note,
 }
 
 #[derive(Debug, Clone)]
@@ -40,9 +40,7 @@ struct Context {
 impl Interpret<Score> for MusicInterpret {
     fn translate(&self, string: &str) -> Score {
         let mut context = Context {
-            scale: Scale {
-                key: self.int_info.key,
-            },
+            scale: Scale::new(self.int_info.key),
             note: self.int_info.first_note.clone(),
             stave_notes: Default::default(),
             stack: Default::default(),
@@ -76,18 +74,18 @@ impl MusicInterpret {
             // Write the current note into the score.
             'F' => context.stave_notes.push(context.note.clone()),
             // Change the current note to the next one in scale.
-            '+' => context.note.pitch = context.scale.next(&context.note.pitch),
+            '+' => context.scale.advance(&mut context.note.pitch),
             // Change the current note to the previous one in scale.
-            '-' => context.note.pitch = context.scale.prev(&context.note.pitch),
+            '-' => context.scale.recede(&mut context.note.pitch),
             // Half the length of current note.
             // FIXME: Handle the case where duration can no longer be halved.
             //        What do we do then?
-            'd' => context.note.duration = context.note.duration.half().unwrap(),
+            'd' => context.note.duration.halve(),
             // Save current state onto the stack.
             '[' => context.stack.push(context.note.clone()),
             // Pop current state from the stack.
             ']' => context.note = context.stack.pop().unwrap(),
-            _ => panic!("Invalid symbol"),
+            s => panic!("Invalid symbol: '{:?}'", s),
         }
     }
 }

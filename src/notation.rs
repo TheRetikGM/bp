@@ -134,34 +134,34 @@ impl Octave {
             Octave::O9 => Some(Octave::O8),
         }
     }
-
-    fn value(&self) -> u8 {
-        match self {
-            Octave::O0 => 0,
-            Octave::O1 => 1,
-            Octave::O2 => 2,
-            Octave::O3 => 3,
-            Octave::O4 => 4,
-            Octave::O5 => 5,
-            Octave::O6 => 6,
-            Octave::O7 => 7,
-            Octave::O8 => 8,
-            Octave::O9 => 9,
-        }
-    }
 }
 
 impl Duration {
+    pub fn halve(&mut self) {
+        match self {
+            Duration::D1 => *self = Duration::D2,
+            Duration::D2 => *self = Duration::D4,
+            Duration::D4 => *self = Duration::D8,
+            Duration::D8 => *self = Duration::D16,
+            Duration::D16 => *self = Duration::D32,
+            Duration::D32 => *self = Duration::D64,
+            Duration::D64 => *self = Duration::D128,
+            Duration::D128 => {
+                eprintln!("WARNING: Trying to halve 1/128 note. Ignoring.");
+            }
+        }
+    }
+
     pub fn half(&self) -> Option<Self> {
         match self {
-            Duration::D1 => None,
-            Duration::D2 => Some(Duration::D1),
-            Duration::D4 => Some(Duration::D2),
-            Duration::D8 => Some(Duration::D4),
-            Duration::D16 => Some(Duration::D8),
-            Duration::D32 => Some(Duration::D16),
-            Duration::D64 => Some(Duration::D32),
-            Duration::D128 => Some(Duration::D64),
+            Duration::D1 => Some(Duration::D2),
+            Duration::D2 => Some(Duration::D4),
+            Duration::D4 => Some(Duration::D8),
+            Duration::D8 => Some(Duration::D16),
+            Duration::D16 => Some(Duration::D32),
+            Duration::D32 => Some(Duration::D64),
+            Duration::D64 => Some(Duration::D128),
+            Duration::D128 => None,
         }
     }
 }
