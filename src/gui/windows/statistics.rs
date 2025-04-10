@@ -3,7 +3,10 @@
 //! ### Author
 //! Jakub Kloub (xkloub03), VUT FIT
 
-use crate::gui::{utils, windows::DockableWindow, GuiAppState};
+use crate::{
+    gui::{utils, windows::DockableWindow, GuiAppState},
+    lsystem::LSystem,
+};
 
 #[derive(Debug, Default)]
 pub struct Statistics;
@@ -34,8 +37,13 @@ impl DockableWindow for Statistics {
     }
 
     fn show(&mut self, ui: &mut egui::Ui, app_state: &mut crate::gui::GuiAppState) {
-        utils::section_name(ui, "Last step used rules");
+        utils::section_name(ui, "Current Word");
+        ui.group(|ui| {
+            ui.set_max_height(50.0);
+            ui.add(egui::Label::new(app_state.l_system.state().word()).wrap());
+        });
 
+        utils::section_name(ui, "Last step used rules");
         ui.horizontal(|ui| {
             ui.add_space(25.0);
             egui::Grid::new("rule_sums")

@@ -15,43 +15,43 @@ pub use symbol::Note;
 pub use symbol::Pitch;
 pub use symbol::Symbol;
 
-#[rustfmt::skip] #[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[rustfmt::skip] #[derive(Debug, Clone, Copy, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 pub enum Clef { Treble, Bass }
 
-#[rustfmt::skip] #[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[rustfmt::skip] #[derive(Debug, Clone, Copy, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 pub enum KeySignatureType { Maj, Min }
 
-#[rustfmt::skip] #[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[rustfmt::skip] #[derive(Debug, Clone, Copy, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 pub enum NoteName { C, D, E, F, G, A, B }
 
-#[rustfmt::skip] #[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[rustfmt::skip] #[derive(Debug, Clone, Copy, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 pub enum Octave { O0, O1, O2, O3, O4, O5, O6, O7, O8, O9 }
 
-#[rustfmt::skip] #[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[rustfmt::skip] #[derive(Debug, Clone, Copy, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 pub enum Accidental { Sharp, Flat }
 
-#[rustfmt::skip] #[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[rustfmt::skip] #[derive(Debug, Clone, Copy, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 pub enum NoteLength { L1, L2, L4, L8, L16, L32, L64, L128 }
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 pub struct ExtNoteName {
     pub note_name: NoteName,
     pub accidental: Option<Accidental>,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Deserialize, serde::Serialize)]
 pub struct KeySignature {
     pub ext: ExtNoteName,
     pub signature_type: KeySignatureType,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, serde::Deserialize, serde::Serialize)]
 pub struct TimeSignature {
     pub beat_count: u8,
     pub single_beat_note: NoteLength,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, serde::Deserialize, serde::Serialize)]
 pub struct Tempo {
     pub note_length: NoteLength,
     pub speed: u8,
@@ -169,7 +169,7 @@ impl NoteLength {
             NoteLength::L32 => *self = NoteLength::L64,
             NoteLength::L64 => *self = NoteLength::L128,
             NoteLength::L128 => {
-                eprintln!("WARNING: Trying to halve 1/128 note. Ignoring.");
+                log::warn!("Trying to halve 1/128 note. Ignoring.");
             }
         }
     }
@@ -194,5 +194,20 @@ impl TimeSignature {
             beat_count: 4,
             single_beat_note: NoteLength::L4,
         }
+    }
+}
+
+impl ExtNoteName {
+    pub fn value_halftone(&self) -> u8 {
+        // Add total number of halftones to get rid of negative values (case of C flat)
+        let v = self.note_name.value_halftone() + Octave::halftone_count();
+
+        let h = match self.accidental {
+            Some(Accidental::Sharp) => v + 1,
+            Some(Accidental::Flat) => v - 1,
+            None => v,
+        };
+
+        h % Octave::halftone_count()
     }
 }

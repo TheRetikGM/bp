@@ -12,6 +12,22 @@ use std::{
     time::Duration,
 };
 
+pub struct AudioData {
+    data: Arc<[u8]>,
+}
+
+impl AudioData {
+    pub fn load_from(file: impl AsRef<Path>) -> Result<Self> {
+        let mut file = std::fs::File::open(file).map_err(|e| AppError::Audio(e.to_string()))?;
+        let mut data: Vec<u8> = vec![];
+        file.read_to_end(&mut data)?;
+
+        Ok(Self {
+            data: Arc::from(data),
+        })
+    }
+}
+
 pub struct AudioController {
     _output_stream: (OutputStream, OutputStreamHandle),
     sink: Sink,
@@ -62,12 +78,14 @@ impl AudioController {
     }
 
     pub fn load<P: AsRef<Path>>(&mut self, music_file: P) -> Result<()> {
-        let mut file =
-            std::fs::File::open(music_file).map_err(|e| AppError::Audio(e.to_string()))?;
-        let mut data: Vec<u8> = vec![];
-        file.read_to_end(&mut data)?;
+        self.audio_data = Some(AudioData::load_from(music_file)?.data);
+        self.renew_source()?;
 
-        self.audio_data = Some(Arc::from(data));
+        Ok(())
+    }
+
+    pub fn load_from_data(&mut self, data: AudioData) -> Result<()> {
+        self.audio_data = Some(data.data);
         self.renew_source()?;
 
         Ok(())

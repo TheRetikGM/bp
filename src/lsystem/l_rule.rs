@@ -13,7 +13,7 @@ pub trait LRule: Display + ToString {
 
 /// Represents a Context-Sensitive Stochastic L-System Rule in the
 /// form $abc -> w, where a,b \in \Sigma |union {\eps}, c \in \Sigma and w \in \Sigma^*$
-#[derive(Debug, Getters, Clone)]
+#[derive(Debug, Getters, Clone, serde::Deserialize, serde::Serialize)]
 pub struct CSSLRule {
     /// Left side of the rule
     left: String,

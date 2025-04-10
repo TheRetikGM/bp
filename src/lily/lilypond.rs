@@ -3,7 +3,7 @@
 //! ### Author
 //! Jakub Kloub (xkloub03), VUT FIT
 
-use crate::{lily::lily_stave::LilyStave, notation::Score};
+use crate::{lily::lily_stave::LilyStave, notation::Score, sanitizer::Sanitizer};
 use std::fmt::Display;
 
 #[derive(Debug, Clone)]
@@ -11,6 +11,13 @@ pub struct Lilypond {
     pub version: String,
     pub language: String,
     pub staves: Vec<LilyStave>,
+}
+
+impl Lilypond {
+    pub fn sanitized_with(mut self, sanitizer: impl Sanitizer<Self>) -> crate::error::Result<Self> {
+        sanitizer.sanitize(&mut self)?;
+        Ok(self)
+    }
 }
 
 impl Default for Lilypond {

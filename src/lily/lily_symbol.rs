@@ -17,6 +17,7 @@ pub enum LilySymbol {
     Time(LilyTime),
     Note(LilyNote),
     Tempo(LilyTempo),
+    Break,
 }
 
 impl From<Symbol> for LilySymbol {
@@ -27,7 +28,7 @@ impl From<Symbol> for LilySymbol {
             Symbol::KeySignature(key_signature) => LilySymbol::Key(key_signature.into()),
             Symbol::Note(note) => LilySymbol::Note(note.into()),
             Symbol::Tempo(tempo) => LilySymbol::Tempo(tempo.into()),
-            _ => todo!("Not implemented yet"),
+            _ => panic!("Invalid symbol for conversion"),
         }
     }
 }
@@ -40,6 +41,7 @@ impl Display for LilySymbol {
             LilySymbol::Time(sym) => sym.fmt(f),
             LilySymbol::Note(sym) => sym.fmt(f),
             LilySymbol::Tempo(sym) => sym.fmt(f),
+            LilySymbol::Break => write!(f, "\\break"),
         }
     }
 }

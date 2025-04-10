@@ -78,14 +78,8 @@ impl View for GrammarEdit {
         ui.vertical_centered(|ui| {
             if ui.button("Apply").clicked() {
                 match self.apply(app_state) {
-                    Ok(_) => {
-                        log::info!("Grammar applied.");
-                        toast::show_success("Grammar applied.")
-                    }
-                    Err(err) => {
-                        log::error!("{err}");
-                        toast::show_error(err.to_string().as_str())
-                    }
+                    Ok(_) => toast::show_success("Grammar applied."),
+                    Err(err) => toast::show_error(err.to_string().as_str()),
                 }
             }
         });

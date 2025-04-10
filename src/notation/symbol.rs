@@ -5,7 +5,7 @@
 
 use crate::notation::*;
 
-#[derive(Debug, Clone, Eq)]
+#[derive(Debug, Clone, Eq, serde::Deserialize, serde::Serialize)]
 pub struct Pitch {
     pub ext: ExtNoteName,
     pub octave: Octave,
@@ -49,16 +49,7 @@ impl Pitch {
     /// assert_eq!(ais.value_halftone(), 10);
     /// ```
     pub fn value_halftone(&self) -> u8 {
-        // Add total number of halftones to get rid of negative values (case of C flat)
-        let v = self.note_name().value_halftone() + Octave::halftone_count();
-
-        let h = match self.accidental() {
-            Some(Accidental::Sharp) => v + 1,
-            Some(Accidental::Flat) => v - 1,
-            None => v,
-        };
-
-        h % Octave::halftone_count()
+        self.ext.value_halftone()
     }
 
     /// Octave after applying accidentals
@@ -112,7 +103,13 @@ impl Pitch {
         match self.accidental() {
             Some(Accidental::Sharp) => {
                 if self.note_name() == NoteName::B {
-                    self.octave = self.octave.try_next().unwrap();
+                    self.octave = match self.octave.try_next() {
+                        Some(octave) => octave,
+                        None => {
+                            log::warn!("Cannot move {self:?} halftone up.");
+                            self.octave
+                        }
+                    }
                 } else if self.note_name() != NoteName::E {
                     self.ext.accidental = None;
                 }
@@ -146,7 +143,13 @@ impl Pitch {
             Some(Accidental::Sharp) => self.ext.accidental = None,
             Some(Accidental::Flat) => {
                 if self.note_name() == NoteName::C {
-                    self.octave = self.octave.try_prev().unwrap();
+                    self.octave = match self.octave.try_prev() {
+                        Some(octave) => octave,
+                        None => {
+                            log::warn!("Cannot move {self:?} halftone down.");
+                            self.octave
+                        }
+                    }
                 } else if self.note_name() != NoteName::F {
                     self.ext.accidental = None;
                 }
@@ -175,7 +178,7 @@ impl PartialEq for Pitch {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Deserialize, serde::Serialize)]
 pub struct Note {
     pub pitch: Pitch,
     pub duration: NoteLength,

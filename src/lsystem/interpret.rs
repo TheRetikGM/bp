@@ -1,7 +1,14 @@
 mod scale;
 
-use crate::notation::{Clef, KeySignature, Note, Score, Stave, Symbol, Tempo, TimeSignature};
+use std::rc::Rc;
+
+use crate::{
+    lsystem::interpret::scale::{BasicScale, JazzLikeScale},
+    notation::{Clef, KeySignature, Note, Score, Stave, Symbol, Tempo, TimeSignature},
+};
 use scale::Scale;
+
+pub use scale::ScaleType;
 
 pub trait Interpret<T> {
     fn translate(&self, string: &str) -> T;
@@ -19,18 +26,21 @@ pub struct MusicInterpret {
 ///
 /// # TODO
 /// - Add tact information such as timing, name of the score, author tempo..
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Deserialize, serde::Serialize)]
 pub struct MusicIntInfo {
-    pub key: KeySignature,
+    pub clef: Clef,
+    pub key_signature: KeySignature,
     pub first_note: Note,
     pub time_signature: TimeSignature,
     pub tempo: Tempo,
+    pub scale_type: ScaleType,
 }
 
 impl Default for MusicIntInfo {
     fn default() -> Self {
         Self {
-            key: KeySignature {
+            clef: Clef::Treble,
+            key_signature: KeySignature {
                 ext: crate::notation::ExtNoteName {
                     note_name: crate::notation::NoteName::C,
                     accidental: None,
@@ -49,6 +59,7 @@ impl Default for MusicIntInfo {
             },
             time_signature: TimeSignature::c(),
             tempo: Tempo::default(),
+            scale_type: ScaleType::Basic,
         }
     }
 }
@@ -58,7 +69,7 @@ struct Context {
     /// Current note that is to be written to the score
     pub note: Note,
     /// Scale, in which the resulting score will be.
-    pub scale: Scale,
+    pub scale: Rc<dyn Scale>,
     /// The resulting stave that we will put into the score.
     pub stave_notes: Vec<Note>,
     /// The stack of notes used for saving state.
@@ -68,7 +79,10 @@ struct Context {
 impl Interpret<Score> for MusicInterpret {
     fn translate(&self, string: &str) -> Score {
         let mut context = Context {
-            scale: Scale::new(self.int_info.key),
+            scale: match self.int_info.scale_type {
+                ScaleType::Basic => Rc::new(BasicScale::new(self.int_info.key_signature)),
+                ScaleType::JazzLike => Rc::new(JazzLikeScale::new(self.int_info.key_signature)),
+            },
             note: self.int_info.first_note.clone(),
             stave_notes: Default::default(),
             stack: Default::default(),
@@ -79,8 +93,8 @@ impl Interpret<Score> for MusicInterpret {
         Score {
             staves: vec![Stave {
                 symbols: [
-                    Symbol::Clef(Clef::Treble),
-                    Symbol::KeySignature(self.int_info.key),
+                    Symbol::Clef(self.int_info.clef),
+                    Symbol::KeySignature(self.int_info.key_signature),
                     Symbol::Tempo(self.int_info.tempo),
                     Symbol::TimeSignature(self.int_info.time_signature),
                 ]

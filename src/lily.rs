@@ -117,7 +117,7 @@ impl Display for LilyNoteName {
                 LilyNoteName::As => "as",
                 LilyNoteName::A => "a",
                 LilyNoteName::Ais => "ais",
-                LilyNoteName::Hes => "hes",
+                LilyNoteName::Hes => "b",
                 LilyNoteName::H => "h",
                 LilyNoteName::His => "his",
             }
@@ -170,6 +170,21 @@ impl From<NoteLength> for LilyNoteLength {
             NoteLength::L32 => LilyNoteLength::L32,
             NoteLength::L64 => LilyNoteLength::L64,
             NoteLength::L128 => LilyNoteLength::L128,
+        }
+    }
+}
+
+impl LilyNoteLength {
+    pub fn value_128(&self) -> u16 {
+        match self {
+            LilyNoteLength::L1 => 128,
+            LilyNoteLength::L2 => 64,
+            LilyNoteLength::L4 => 32,
+            LilyNoteLength::L8 => 16,
+            LilyNoteLength::L16 => 8,
+            LilyNoteLength::L32 => 4,
+            LilyNoteLength::L64 => 2,
+            LilyNoteLength::L128 => 1,
         }
     }
 }

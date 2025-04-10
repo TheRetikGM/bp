@@ -3,60 +3,143 @@
 //! ### Author
 //! Jakub Kloub (xkloub03), VUT FIT
 
+use serde::{Deserialize, Serialize};
+
 use crate::notation::{KeySignature, KeySignatureType, Octave, Pitch};
 
-/// Scale a structure that helps us with moving notes in given key.
-#[derive(Debug, Clone, Copy)]
-pub struct Scale {
-    pub key: KeySignature,
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum ScaleType {
+    Basic,
+    JazzLike,
 }
 
-impl Scale {
-    /// Create a new scale with given key.
-    pub fn new(key: KeySignature) -> Self {
-        Self { key }
-    }
-
+/// Scale a trait that helps us with moving notes in given key.
+pub trait Scale: std::fmt::Debug {
     /// Move one note up.
-    pub fn advance(&self, pitch: &mut Pitch) {
-        let ht = Octave::halftone_count();
-        let rank = (pitch.value_halftone() + ht - self.key.ext.note_name.value_halftone()) % ht;
-
-        match self.key.signature_type {
-            KeySignatureType::Maj => match rank {
-                4 | 11 => pitch.move_halftone_up(),
-                _ => pitch.move_tone_up(),
-            },
-            KeySignatureType::Min => todo!(),
-        }
-    }
+    fn advance(&self, pitch: &mut Pitch);
 
     // Move one note down.
-    pub fn recede(&self, pitch: &mut Pitch) {
-        let ht = Octave::halftone_count();
-        let rank = (pitch.value_halftone() + ht - self.key.ext.note_name.value_halftone()) % ht;
-
-        match self.key.signature_type {
-            KeySignatureType::Maj => match rank {
-                0 | 5 => pitch.move_halftone_down(),
-                _ => pitch.move_tone_down(),
-            },
-            KeySignatureType::Min => todo!(),
-        }
-    }
+    fn recede(&self, pitch: &mut Pitch);
 
     /// Move one note up.
-    pub fn next(&self, pitch: &Pitch) -> Pitch {
+    #[cfg(test)]
+    fn next(&self, pitch: &Pitch) -> Pitch {
         let mut p = pitch.clone();
         self.advance(&mut p);
         p
     }
 
     /// Move one note down.
-    pub fn prev(&self, pitch: &Pitch) -> Pitch {
+    #[cfg(test)]
+    fn prev(&self, pitch: &Pitch) -> Pitch {
         let mut p = pitch.clone();
         self.recede(&mut p);
         p
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct BasicScale {
+    pub key: KeySignature,
+}
+
+impl BasicScale {
+    /// Create a new scale with given key.
+    pub fn new(key: KeySignature) -> Self {
+        Self { key }
+    }
+}
+
+impl Scale for BasicScale {
+    /// Move one note up.
+    fn advance(&self, pitch: &mut Pitch) {
+        let ht = Octave::halftone_count();
+        let rank = (pitch.value_halftone() + ht - self.key.ext.value_halftone()) % ht;
+
+        match self.key.signature_type {
+            KeySignatureType::Maj => match rank {
+                4 | 11 => pitch.move_halftone_up(),
+                _ => pitch.move_tone_up(),
+            },
+            // Natural minor
+            KeySignatureType::Min => match rank {
+                2 | 7 => pitch.move_halftone_up(),
+                _ => pitch.move_tone_up(),
+            },
+        }
+    }
+
+    // Move one note down.
+    fn recede(&self, pitch: &mut Pitch) {
+        let ht = Octave::halftone_count();
+        let rank = (pitch.value_halftone() + ht - self.key.ext.value_halftone()) % ht;
+
+        match self.key.signature_type {
+            KeySignatureType::Maj => match rank {
+                0 | 5 => pitch.move_halftone_down(),
+                _ => pitch.move_tone_down(),
+            },
+            KeySignatureType::Min => match rank {
+                3 | 8 => pitch.move_halftone_down(),
+                _ => pitch.move_tone_down(),
+            },
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct JazzLikeScale {
+    pub key: KeySignature,
+}
+
+impl JazzLikeScale {
+    pub fn new(key: KeySignature) -> Self {
+        Self { key }
+    }
+}
+
+impl Scale for JazzLikeScale {
+    fn advance(&self, pitch: &mut Pitch) {
+        let ht = Octave::halftone_count();
+        let rank = (pitch.value_halftone() + ht - self.key.ext.value_halftone()) % ht;
+
+        match self.key.signature_type {
+            KeySignatureType::Maj => match rank {
+                2 | 9 => {
+                    pitch.move_tone_up();
+                    pitch.move_halftone_up();
+                }
+                7 => pitch.move_halftone_up(),
+                8 => pitch.move_halftone_up(),
+                _ => pitch.move_tone_up(),
+            },
+            KeySignatureType::Min => todo!(),
+        }
+    }
+
+    fn recede(&self, pitch: &mut Pitch) {
+        let ht = Octave::halftone_count();
+        let rank = (pitch.value_halftone() + ht - self.key.ext.value_halftone()) % ht;
+
+        log::info!(
+            "rank = {}, pitch = {:?}, key = {:?}",
+            rank,
+            pitch,
+            self.key.signature_type
+        );
+
+        match self.key.signature_type {
+            KeySignatureType::Maj => match rank {
+                0 | 5 => {
+                    pitch.move_tone_down();
+                    pitch.move_halftone_down();
+                }
+                9 => pitch.move_halftone_down(),
+                8 => pitch.move_halftone_down(),
+                _ => pitch.move_tone_down(),
+            },
+            KeySignatureType::Min => todo!(),
+        }
     }
 }
 
@@ -78,7 +161,7 @@ mod tests {
             },
             signature_type: Maj,
         };
-        let scale = Scale { key: e_dur };
+        let scale = BasicScale { key: e_dur };
         let n1 = Pitch {
             ext: ExtNoteName {
                 note_name: G,
@@ -114,7 +197,7 @@ mod tests {
             },
             signature_type: Maj,
         };
-        let scale = Scale { key: e_dur };
+        let scale = BasicScale { key: e_dur };
         let n1 = Pitch {
             ext: ExtNoteName {
                 note_name: G,

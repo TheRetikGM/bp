@@ -38,6 +38,9 @@ pub enum AppError {
     #[error("Argument error: {0}")]
     Argument(String),
 
+    #[error("Score is missing a time signature.")]
+    MissingTimeSignature,
+
     #[error("Error: {0}")]
     Other(String),
 }

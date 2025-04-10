@@ -12,7 +12,7 @@ pub trait LRuleSet<R: LRule>: Display {
 }
 
 /// Rule set of Context-Sensitive Stochastic L-System
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Deserialize, serde::Serialize)]
 pub struct CSSLRuleSet {
     rules: Vec<Rc<CSSLRule>>,
 }

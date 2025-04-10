@@ -4,11 +4,11 @@
 //! Jakub Kloub (xkloub03), VUT FIT
 
 use crate::{
-    error::{AppError, Result},
+    error::Result,
     gui::{
         gui_app::GuiAppState,
         toast,
-        utils::{self},
+        utils::{fluidsynth_async, lilypond_async, AsyncResult, InMemoryTexture, Texture},
         widgets::AudioPlayer,
         windows::DockableWindow,
     },
@@ -17,50 +17,104 @@ use crate::{
         interpret::{Interpret, MusicInterpret},
         LSystem,
     },
-    utils::AudioController,
+    sanitizer::LilySanitizer,
+    utils::{AudioController, AudioData},
     Arguments,
 };
-use egui::Widget;
-use std::{path::PathBuf, sync::Arc};
+use egui::{mutex::Mutex, Widget};
+use poll_promise::Promise;
+use std::{
+    cmp::{max, min},
+    ops::DerefMut,
+    path::PathBuf,
+    sync::Arc,
+};
 
-pub struct Texture(Arc<egui::ColorImage>, egui::TextureHandle);
+#[derive(PartialEq, Debug)]
+enum ScoreRefreshState {
+    Begin,
+    LilyCompilation,
+    TextureLoading,
+    Fluidsynth,
+    AudioLoading,
+    Done,
+}
 
-impl std::fmt::Debug for Texture {
+impl std::fmt::Display for ScoreRefreshState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_tuple("Texture").field(&self.0).finish()
+        write!(
+            f,
+            "{}",
+            match self {
+                ScoreRefreshState::Begin => "",
+                ScoreRefreshState::LilyCompilation => "Lilypond compilation",
+                ScoreRefreshState::TextureLoading => "Loading generated pages",
+                ScoreRefreshState::Fluidsynth => "Converting MIDI to audio",
+                ScoreRefreshState::AudioLoading => "Loading audio",
+                ScoreRefreshState::Done => "Done",
+            }
+        )
     }
 }
 
-impl Texture {
-    pub fn load_from(path: &PathBuf, ctx: &egui::Context) -> Result<Self> {
-        let image = image::open(path).map_err(|e| AppError::build_path(path, &e))?;
-        let size = [image.width() as usize, image.height() as usize];
-        let image_buffer = image.to_rgba8();
-        let pixels: Vec<_> = image_buffer
-            .pixels()
-            .map(|p| egui::Color32::from_rgba_unmultiplied(p[0], p[1], p[2], p[3]))
-            .collect();
+struct RefreshOutput {
+    pages_data: Vec<InMemoryTexture>,
+    audio_data: AudioData,
+    score_image_paths: Vec<PathBuf>,
+    score_audio_path: PathBuf,
+}
 
-        let color_image = Arc::new(egui::ColorImage { size, pixels });
-        let handle = ctx.load_texture("score_image", color_image.clone(), Default::default());
+fn refresh_async(
+    async_state: Arc<Mutex<ScoreRefreshState>>,
+    lily_input: String,
+    sf_path: PathBuf,
+) -> Promise<AsyncResult<RefreshOutput>> {
+    poll_promise::Promise::spawn_thread("refresh_async", move || {
+        *async_state.lock().deref_mut() = ScoreRefreshState::LilyCompilation;
+        let lily_output = lilypond_async(lily_input, "score".to_owned()).block_and_take()?;
 
-        Ok(Self(color_image, handle))
-    }
+        *async_state.lock().deref_mut() = ScoreRefreshState::TextureLoading;
+        let mut textures: Vec<InMemoryTexture> = vec![];
+        for t_res in lily_output.pages().iter().map(InMemoryTexture::load_from) {
+            textures.push(Into::<AsyncResult<_>>::into(t_res)?);
+        }
+
+        *async_state.lock().deref_mut() = ScoreRefreshState::Fluidsynth;
+        let fluid_output =
+            fluidsynth_async(&sf_path, lily_output.midi_path(), "score").block_and_take()?;
+
+        *async_state.lock().deref_mut() = ScoreRefreshState::AudioLoading;
+        let audio_data = AsyncResult::<_>::from(AudioData::load_from(fluid_output.wav_path()))?;
+
+        *async_state.lock().deref_mut() = ScoreRefreshState::Done;
+
+        AsyncResult::Ok(RefreshOutput {
+            pages_data: textures,
+            audio_data,
+            score_image_paths: lily_output.pages().to_owned(),
+            score_audio_path: fluid_output.wav_path().to_owned(),
+        })
+    })
 }
 
 pub struct ScoreVisualizer {
-    pub image: Option<Texture>,
+    pub images: Option<Vec<Texture>>,
     last_step_num: i32,
     audio_controller: AudioController,
     sf_path: PathBuf,
+
+    selected_image: Option<usize>,
+    refresh_state: Option<Arc<Mutex<ScoreRefreshState>>>,
+    refresh_promise: Option<Promise<AsyncResult<RefreshOutput>>>,
 }
 
 impl std::fmt::Debug for ScoreVisualizer {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("ScoreVisualizer")
-            .field("image", &self.image)
+            .field("images", &self.images)
             .field("last_step_num", &self.last_step_num)
             .field("audio_controller", &self.audio_controller)
+            .field("sf_path", &self.sf_path)
             .finish()
     }
 }
@@ -69,16 +123,19 @@ impl Default for ScoreVisualizer {
     fn default() -> Self {
         let args = Arguments::new().unwrap();
         Self {
-            image: Default::default(),
+            images: None,
+            selected_image: None,
             last_step_num: Default::default(),
             audio_controller: AudioController::new().unwrap(),
             sf_path: args.sound_font_path,
+            refresh_state: None,
+            refresh_promise: None,
         }
     }
 }
 
 impl ScoreVisualizer {
-    fn refresh(&mut self, ui: &mut egui::Ui, app_state: &mut GuiAppState) -> Result<()> {
+    fn start_refresh(&mut self, app_state: &mut GuiAppState) -> Result<()> {
         let state = app_state.l_system.state();
         self.last_step_num = *state.iter_num();
         app_state.dirty = false;
@@ -87,25 +144,16 @@ impl ScoreVisualizer {
         let score = MusicInterpret::new(app_state.music_int_info.clone())
             .translate(state.word())
             .sanitized()?;
+        let lily_score = Lilypond::from(score).sanitized_with(LilySanitizer::default())?;
 
-        // Execute lilypond on the generated score.
-        let lily_score: Lilypond = score.into();
-        let output = crate::gui::utils::lilypond(lily_score.to_string().as_str(), "score")?;
-
-        // Load generated sheet music.
-        match Texture::load_from(output.path(), ui.ctx()) {
-            Ok(tex) => self.image = Some(tex),
-            Err(e) => {
-                self.image = None;
-                Err(e)?;
-            }
-        };
-
-        // Create WAV file from generated midi.
-        let fluidsynth_output = utils::fluidsynth(&self.sf_path, output.midi_path(), "score")?;
-
-        // Load the result WAV file.
-        self.audio_controller.load(fluidsynth_output.wav_path())?;
+        self.images = None;
+        self.selected_image = None;
+        self.refresh_state = Some(Arc::new(Mutex::new(ScoreRefreshState::Begin)));
+        self.refresh_promise = Some(refresh_async(
+            self.refresh_state.clone().unwrap(),
+            lily_score.to_string(),
+            self.sf_path.clone(),
+        ));
 
         Ok(())
     }
@@ -119,9 +167,8 @@ impl DockableWindow for ScoreVisualizer {
     fn show(&mut self, ui: &mut egui::Ui, app_state: &mut GuiAppState) {
         let last_step_num = *app_state.l_system.state().iter_num();
         if app_state.dirty || last_step_num != self.last_step_num {
-            if let Err(err) = self.refresh(ui, app_state) {
-                toast::show_error(err.as_ref());
-                log::error!("{err}")
+            if let Err(e) = self.start_refresh(app_state) {
+                toast::show_error(format!("Start refresh failed: {e}").as_str());
             }
         }
 
@@ -129,17 +176,76 @@ impl DockableWindow for ScoreVisualizer {
             ui.add(AudioPlayer::new(&mut self.audio_controller));
         }
 
-        ui.group(|ui| {
-            if let Some(Texture(_, tex)) = &self.image {
-                ui.centered_and_justified(|ui| {
+        if let Some(refresh_promise) = self.refresh_promise.take() {
+            match refresh_promise.try_take() {
+                Ok(refresh_output) => match refresh_output {
+                    AsyncResult::Ok(refresh_output) => {
+                        self.images = Some(
+                            refresh_output
+                                .pages_data
+                                .into_iter()
+                                .map(|data| Texture::load_from_memory(data, ui.ctx()))
+                                .collect(),
+                        );
+                        self.selected_image = Some(0);
+                        self.audio_controller
+                            .load_from_data(refresh_output.audio_data)
+                            .unwrap();
+                        app_state.score_images = Some(refresh_output.score_image_paths);
+                        app_state.score_audio = Some(refresh_output.score_audio_path);
+                        ui.ctx().request_repaint();
+                    }
+                    AsyncResult::Err(e) => {
+                        toast::show_error(format!("Refresh failed: {e}").as_str());
+                    }
+                },
+                Err(promise) => {
+                    ui.centered_and_justified(|ui| {
+                        egui::Frame::new().show(ui, |ui| {
+                            ui.set_width(100.0);
+                            ui.horizontal(|ui| {
+                                ui.add(egui::Spinner::new().size(10.0));
+                                ui.label(self.refresh_state.as_ref().unwrap().lock().to_string());
+                            });
+                        });
+                    });
+
+                    self.refresh_promise = Some(promise);
+                }
+            };
+        } else if let (Some(images), Some(selected_image)) = (&self.images, self.selected_image) {
+            ui.group(|ui| {
+                ui.vertical_centered(|ui| {
+                    ui.set_height(ui.available_height() - 28.0);
+                    let Texture(_, tex) = &images[selected_image];
                     egui::Image::new(tex).shrink_to_fit().ui(ui);
                 });
-            } else {
+                ui.add_space(5.0);
+                ui.vertical_centered(|ui| {
+                    ui.set_width(100.0);
+
+                    ui.horizontal(|ui| {
+                        if ui.button("<").clicked() {
+                            self.selected_image = Some(max(0, selected_image as i32 - 1) as usize);
+                            ui.ctx().request_repaint();
+                        }
+
+                        ui.label(format!("{} / {}", selected_image + 1, images.len()));
+
+                        if ui.button(">").clicked() {
+                            self.selected_image = Some(min(images.len() - 1, selected_image + 1));
+                            ui.ctx().request_repaint();
+                        }
+                    })
+                })
+            });
+        } else {
+            ui.group(|ui| {
                 ui.centered_and_justified(|ui| {
                     ui.label("no image");
                 });
                 ui.allocate_space(ui.available_size());
-            }
-        });
+            });
+        }
     }
 }

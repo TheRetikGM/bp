@@ -5,27 +5,54 @@
 //! ### Author
 //! Jakub Kloub (xkloub03), VUT FIT
 
-use std::{collections::HashMap, rc::Rc};
+use std::{
+    collections::HashMap,
+    ffi::OsStr,
+    fs::File,
+    path::{Path, PathBuf},
+    rc::Rc,
+};
 
 use crate::{
     error::Result,
     gui::{toast, windows::*},
     lsystem::{interpret::MusicIntInfo, CSSLRuleSet, CSSLSystem},
+    sanitizer::LilySanitizer,
 };
 use egui_dock::{DockArea, DockState, TabViewer};
+use egui_file_dialog::FileDialog;
 
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct GuiAppState {
     pub rules: CSSLRuleSet,
     pub axiom: String,
     pub music_int_info: MusicIntInfo,
+    pub lily_sanitizer: LilySanitizer,
 
     pub l_system: CSSLSystem,
-    pub dirty: bool,
     pub used_rules_history: Vec<Vec<Rc<crate::lsystem::CSSLRule>>>,
+
+    pub score_images: Option<Vec<PathBuf>>,
+    pub score_audio: Option<PathBuf>,
+
+    #[serde(skip)]
+    #[serde(default = "default_dirty")]
+    pub dirty: bool,
+}
+
+fn default_dirty() -> bool {
+    true
 }
 
 impl GuiAppState {
+    pub fn reset(&mut self) {
+        self.l_system = CSSLSystem::new(self.axiom.clone(), self.rules.clone());
+        self.used_rules_history.clear();
+        self.score_images = None;
+        self.score_audio = None;
+        self.dirty = true;
+    }
+
     pub fn apply_changes(&mut self) -> Result<()> {
         self.l_system = CSSLSystem::new(self.axiom.clone(), self.rules.clone());
 
@@ -33,14 +60,40 @@ impl GuiAppState {
     }
 }
 
-#[derive(serde::Deserialize, serde::Serialize)]
-#[serde(default)] // if we add new fields, give them default values when deserializing old state
+#[derive(serde::Serialize)]
+#[serde(default)]
 struct GuiAppDocked {
-    #[serde(skip)]
     app_state: GuiAppState,
 
     #[serde(skip)]
     pub tabs: HashMap<&'static str, Box<dyn DockableWindow>>,
+}
+
+#[derive(serde::Deserialize)]
+struct GuiAppDockedDe {
+    app_state: GuiAppState,
+}
+
+impl<'de> serde::Deserialize<'de> for GuiAppDocked {
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let app_state = GuiAppDockedDe::deserialize(deserializer)?;
+        let tabs: Vec<Box<dyn DockableWindow>> = vec![
+            Box::new(Logger {}),
+            Box::new(GrammarEdit::new(&app_state.app_state)),
+            Box::new(ScoreVisualizer::default()),
+            Box::new(ControlPanel::new(&app_state.app_state)),
+            Box::new(InterpretParameteres {}),
+            Box::new(Statistics {}),
+        ];
+
+        Ok(Self {
+            tabs: tabs.into_iter().map(|tab| (tab.name(), tab)).collect(),
+            app_state: app_state.app_state,
+        })
+    }
 }
 
 impl Default for GuiAppDocked {
@@ -73,6 +126,9 @@ impl Default for GuiAppDocked {
             dirty: true,
             music_int_info: MusicIntInfo::default(),
             used_rules_history: Vec::default(),
+            score_images: None,
+            score_audio: None,
+            lily_sanitizer: LilySanitizer::default(),
         };
 
         let tabs: Vec<Box<dyn DockableWindow>> = vec![
@@ -98,6 +154,8 @@ type Tab = String;
 pub struct GuiApp {
     dock_state: DockState<Tab>,
     app_docked: GuiAppDocked,
+    #[serde(skip)]
+    file_dialog: FileDialog,
 }
 
 impl Default for GuiApp {
@@ -109,6 +167,7 @@ impl Default for GuiApp {
                 app_docked.tabs.iter().map(|(&n, _)| n.to_owned()).collect(),
             ),
             app_docked,
+            file_dialog: FileDialog::new(),
         }
     }
 }
@@ -125,6 +184,32 @@ impl GuiApp {
         }
 
         Default::default()
+    }
+
+    pub fn export(&self, path: &Path) -> crate::error::Result<()> {
+        let path = if path.extension().unwrap_or(OsStr::new("")) != "tar" {
+            path.with_added_extension("tar")
+        } else {
+            path.to_path_buf()
+        };
+
+        let file = File::create(path)?;
+        let mut builder = tar::Builder::new(file);
+        for p in self
+            .app_docked
+            .app_state
+            .score_images
+            .as_ref()
+            .unwrap_or(&vec![])
+        {
+            builder.append_path_with_name(p, p.file_name().unwrap())?;
+        }
+
+        if let Some(audio_path) = self.app_docked.app_state.score_audio.as_ref() {
+            builder.append_path_with_name(audio_path, audio_path.file_name().unwrap())?;
+        }
+
+        Ok(())
     }
 }
 
@@ -144,6 +229,10 @@ impl eframe::App for GuiApp {
                 let is_web = cfg!(target_arch = "wasm32");
                 if !is_web {
                     ui.menu_button("File", |ui| {
+                        if ui.button("Export..").clicked() {
+                            self.file_dialog.save_file();
+                        };
+                        ui.separator();
                         if ui.button("Quit").clicked() {
                             ctx.send_viewport_cmd(egui::ViewportCommand::Close);
                         }
@@ -163,6 +252,20 @@ impl eframe::App for GuiApp {
                 .show(ctx, &mut self.app_docked);
 
             toast::TOASTS.lock().unwrap().show(ctx);
+
+            self.file_dialog.update(ctx);
+            if let Some(path) = self.file_dialog.take_picked() {
+                match self.export(&path) {
+                    Ok(_) => {
+                        toast::show_success(
+                            format!("File exported to: {}", path.display()).as_str(),
+                        );
+                    }
+                    Err(e) => {
+                        toast::show_error(format!("Export failed: {e}").as_str());
+                    }
+                };
+            }
         });
     }
 }

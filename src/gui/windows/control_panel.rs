@@ -5,7 +5,7 @@
 
 use crate::{
     gui::{gui_app::GuiAppState, windows::DockableWindow},
-    lsystem::{CSSLSystem, LSystem},
+    lsystem::LSystem,
 };
 
 #[derive(Debug)]
@@ -23,8 +23,8 @@ impl ControlPanel {
     }
 
     pub fn step(&mut self, app_state: &mut GuiAppState, n: usize) {
-        self.prev_word = app_state.l_system.state().word().clone();
         (0..n).for_each(|_| {
+            self.prev_word = app_state.l_system.state().word().clone();
             app_state.used_rules_history.push(app_state.l_system.step());
         });
     }
@@ -36,6 +36,7 @@ impl ControlPanel {
             .state_mut()
             .set_word(self.prev_word.clone())
             .set_iter_num(iter_num - 1);
+        app_state.used_rules_history.pop();
     }
 
     pub fn retry_step(&mut self, app_state: &mut GuiAppState) {
@@ -75,9 +76,7 @@ impl DockableWindow for ControlPanel {
 
             ui.horizontal(|ui| {
                 if ui.button("Reset").clicked() {
-                    app_state.l_system =
-                        CSSLSystem::new(app_state.axiom.clone(), app_state.rules.clone());
-                    app_state.dirty = true;
+                    app_state.reset();
                 }
 
                 if ui.button("Refresh").clicked() {

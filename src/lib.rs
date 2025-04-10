@@ -1,3 +1,5 @@
+#![feature(try_trait_v2)]
+#![feature(path_add_extension)]
 //! Main libary module
 //!
 //! ### Author

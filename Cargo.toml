@@ -31,10 +31,13 @@ once_cell = "1.21.3"
 egui_dock = { version = "0.16.0", features = ["serde"] }
 image = "0.25.6"
 fs = "0.0.5"
+poll-promise = "0.3.0"
 
 # You only need serde if you want app persistence:
 serde = { version = "1.0.219", features = ["derive"] }
 directories = "6.0.0"
+egui-file-dialog = "0.9.0"
+tar = "0.4.44"
 
 # native:
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]

@@ -8,7 +8,7 @@ use crate::lsystem::{
 };
 use std::{fmt::Display, rc::Rc};
 
-#[derive(Debug, Getters)]
+#[derive(Debug, Getters, serde::Deserialize, serde::Serialize)]
 pub struct LSystemState {
     iter_num: i32,
     word: String,
@@ -49,9 +49,10 @@ pub trait LSystem<R: LRule, S: LRuleSet<R>, W: LRewriter<R, S>>: Display + std::
 }
 
 /// Context-Sensitive Stochastic L-System
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct CSSLSystem {
     rewriter: CSSLRewriter,
+
     axiom: String,
     state: LSystemState,
 }

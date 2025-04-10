@@ -47,9 +47,17 @@ pub trait LRewriter<R: LRule, S: LRuleSet<R>> {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Deserialize, serde::Serialize)]
 pub struct CSSLRewriter {
     rules: CSSLRuleSet,
+}
+
+impl Default for CSSLRewriter {
+    fn default() -> Self {
+        Self {
+            rules: CSSLRuleSet::new(vec![]),
+        }
+    }
 }
 
 impl CSSLRewriter {
