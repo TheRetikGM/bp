@@ -9,7 +9,7 @@ pub trait Interpret<T> {
 
 #[derive(Debug, Clone)]
 pub struct MusicInterpret {
-    int_info: MusicIntInfo,
+    pub int_info: MusicIntInfo,
 }
 
 /// Music interpretation info.

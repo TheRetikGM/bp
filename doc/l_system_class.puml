@@ -1,0 +1,58 @@
+@startuml
+
+' !include theme.puml
+hide circle
+
+class LSystemState {
+    + iter_num
+    + String
+}
+
+interface LSystem << interface >> {
+    + step()
+}
+
+class CSSLSystem {
+    - axiom
+}
+
+interface LRewriter << interface >> {
+    + rewrite(String) -> String
+}
+
+class CSSLRewriter
+
+interface LRuleSet << interface >> {
+    + select(string) -> rule
+}
+
+class CSSLRuleSet
+
+interface LRule << interface >> {
+    + matches(string) -> bool
+    + left() -> String
+    + right() -> String
+}
+
+class CSSLRule {
+    + p() -> float
+}
+
+CSSLSystem .down.|> LSystem
+CSSLRewriter .left.|> LRewriter
+CSSLRuleSet .up.|> LRuleSet
+CSSLRule .up.|> LRule
+
+LSystemState "1" -up-* CSSLSystem
+
+LSystem -right-> LRewriter
+LRewriter -down-> LRuleSet
+LRuleSet -left-> LRule
+
+CSSLSystem o-right- "            1" CSSLRewriter
+CSSLRewriter o-down- "1" CSSLRuleSet
+CSSLRuleSet o-left- "1..*" CSSLRule
+
+LSystem -left-> LSystemState
+
+@enduml

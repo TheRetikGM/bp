@@ -43,7 +43,7 @@ fn main() {
                 octave: Octave::O5,
                 accidental: None,
             },
-            duration: Duration::D1,
+            duration: NoteLength::L1,
         },
     });
 

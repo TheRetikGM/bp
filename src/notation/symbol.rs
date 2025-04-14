@@ -40,7 +40,7 @@ impl Pitch {
     /// assert_eq!(ais.value_halftone(), 10);
     /// ```
     pub fn value_halftone(&self) -> u8 {
-        let v = self.note_name.value_halftone() + NoteName::halftone_count();
+        let v = self.note_name.value_halftone() + Octave::halftone_count();
 
         let h = match self.accidental {
             Some(Accidental::Sharp) => v + 1,
@@ -48,7 +48,7 @@ impl Pitch {
             None => v,
         };
 
-        h % NoteName::halftone_count()
+        h % Octave::halftone_count()
     }
 
     /// Octave after applying accidentals
@@ -162,14 +162,14 @@ impl Pitch {
 #[derive(Debug, Clone)]
 pub struct Note {
     pub pitch: Pitch,
-    pub duration: Duration,
+    pub duration: NoteLength,
 }
 
 /// Represents a chord of notes that have the same length.
 #[derive(Debug, Clone)]
 pub struct Chord {
     pub pitches: Vec<Pitch>,
-    pub duration: Duration,
+    pub duration: NoteLength,
 }
 
 #[derive(Debug, Clone)]
@@ -179,7 +179,7 @@ pub enum Symbol {
     KeySignature(KeySignature),
     Chord(Chord),
     Note(Note),
-    Rest(Duration),
+    Rest(NoteLength),
 }
 
 impl PartialEq for Pitch {

@@ -16,7 +16,7 @@ pub use lily_symbol::LilySymbol;
 pub use lilypond::Lilypond;
 
 use crate::notation::{
-    Accidental, Clef, Duration, KeySignature, KeySignatureType, NoteName, Octave, Pitch,
+    Accidental, Clef, KeySignature, KeySignatureType, NoteLength, NoteName, Octave, Pitch,
     TimeSignature,
 };
 
@@ -167,17 +167,17 @@ pub enum LilyNoteLength {
     L1, L2, L4, L8, L16, L32, L64, L128
 }
 
-impl From<Duration> for LilyNoteLength {
-    fn from(duration: Duration) -> Self {
+impl From<NoteLength> for LilyNoteLength {
+    fn from(duration: NoteLength) -> Self {
         match duration {
-            Duration::D1 => LilyNoteLength::L1,
-            Duration::D2 => LilyNoteLength::L2,
-            Duration::D4 => LilyNoteLength::L4,
-            Duration::D8 => LilyNoteLength::L8,
-            Duration::D16 => LilyNoteLength::L16,
-            Duration::D32 => LilyNoteLength::L32,
-            Duration::D64 => LilyNoteLength::L64,
-            Duration::D128 => LilyNoteLength::L128,
+            NoteLength::L1 => LilyNoteLength::L1,
+            NoteLength::L2 => LilyNoteLength::L2,
+            NoteLength::L4 => LilyNoteLength::L4,
+            NoteLength::L8 => LilyNoteLength::L8,
+            NoteLength::L16 => LilyNoteLength::L16,
+            NoteLength::L32 => LilyNoteLength::L32,
+            NoteLength::L64 => LilyNoteLength::L64,
+            NoteLength::L128 => LilyNoteLength::L128,
         }
     }
 }

@@ -31,7 +31,7 @@ pub enum Octave { O0, O1, O2, O3, O4, O5, O6, O7, O8, O9 }
 pub enum Accidental { Sharp, Flat }
 
 #[rustfmt::skip] #[derive(Debug, Clone, Copy, Eq, PartialEq)]
-pub enum Duration { D1, D2, D4, D8, D16, D32, D64, D128 }
+pub enum NoteLength { L1, L2, L4, L8, L16, L32, L64, L128 }
 
 // FIXME: Add support for accidentals
 #[derive(Debug, Clone, Copy)]
@@ -43,7 +43,7 @@ pub struct KeySignature {
 #[derive(Debug, Clone, Copy)]
 pub struct TimeSignature {
     pub beat_count: u8,
-    pub single_beat_note: Duration,
+    pub single_beat_note: NoteLength,
 }
 
 impl NoteName {
@@ -94,14 +94,6 @@ impl NoteName {
             NoteName::B => 11,
         }
     }
-
-    pub fn tone_count() -> u8 {
-        7
-    }
-
-    pub fn halftone_count() -> u8 {
-        12
-    }
 }
 
 impl Octave {
@@ -134,19 +126,29 @@ impl Octave {
             Octave::O9 => Some(Octave::O8),
         }
     }
+
+    /// Number of tones in one octave
+    pub fn tone_count() -> u8 {
+        7
+    }
+
+    // Number of halftones in one octave
+    pub fn halftone_count() -> u8 {
+        12
+    }
 }
 
-impl Duration {
+impl NoteLength {
     pub fn halve(&mut self) {
         match self {
-            Duration::D1 => *self = Duration::D2,
-            Duration::D2 => *self = Duration::D4,
-            Duration::D4 => *self = Duration::D8,
-            Duration::D8 => *self = Duration::D16,
-            Duration::D16 => *self = Duration::D32,
-            Duration::D32 => *self = Duration::D64,
-            Duration::D64 => *self = Duration::D128,
-            Duration::D128 => {
+            NoteLength::L1 => *self = NoteLength::L2,
+            NoteLength::L2 => *self = NoteLength::L4,
+            NoteLength::L4 => *self = NoteLength::L8,
+            NoteLength::L8 => *self = NoteLength::L16,
+            NoteLength::L16 => *self = NoteLength::L32,
+            NoteLength::L32 => *self = NoteLength::L64,
+            NoteLength::L64 => *self = NoteLength::L128,
+            NoteLength::L128 => {
                 eprintln!("WARNING: Trying to halve 1/128 note. Ignoring.");
             }
         }
@@ -154,14 +156,14 @@ impl Duration {
 
     pub fn half(&self) -> Option<Self> {
         match self {
-            Duration::D1 => Some(Duration::D2),
-            Duration::D2 => Some(Duration::D4),
-            Duration::D4 => Some(Duration::D8),
-            Duration::D8 => Some(Duration::D16),
-            Duration::D16 => Some(Duration::D32),
-            Duration::D32 => Some(Duration::D64),
-            Duration::D64 => Some(Duration::D128),
-            Duration::D128 => None,
+            NoteLength::L1 => Some(NoteLength::L2),
+            NoteLength::L2 => Some(NoteLength::L4),
+            NoteLength::L4 => Some(NoteLength::L8),
+            NoteLength::L8 => Some(NoteLength::L16),
+            NoteLength::L16 => Some(NoteLength::L32),
+            NoteLength::L32 => Some(NoteLength::L64),
+            NoteLength::L64 => Some(NoteLength::L128),
+            NoteLength::L128 => None,
         }
     }
 }
@@ -170,7 +172,7 @@ impl TimeSignature {
     pub fn c() -> Self {
         Self {
             beat_count: 4,
-            single_beat_note: Duration::D4,
+            single_beat_note: NoteLength::L4,
         }
     }
 }

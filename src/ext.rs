@@ -19,7 +19,7 @@ pub trait CapturedStr {
     fn captured_str(&self, i: usize) -> Result<&str>;
 }
 
-impl<'a> CapturedStr for Captures<'a> {
+impl CapturedStr for Captures<'_> {
     fn captured_str(&self, i: usize) -> Result<&str> {
         self.get(i)
             .map(|m| m.as_str())

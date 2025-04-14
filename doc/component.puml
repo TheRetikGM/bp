@@ -1,0 +1,45 @@
+@startuml
+' !include theme.puml
+hide circle
+left to right direction
+skinparam lineType ortho
+
+folder L-System as ls {
+    component Rewriter
+    component Rule
+    component RuleSet
+    component LSystem
+
+    folder Interpret {
+        component Scale
+    }
+}
+
+folder Notation {
+    component Score
+    component Note
+}
+
+folder LilyNotation {
+    component LilyScore
+    component LilyNote
+}
+
+folder GUI {
+    component TODO
+}
+
+artifact Lilypond << program >> as prg
+
+Notation ....> LilyNotation : "into "
+Interpret --> Score : "  produce"
+Scale ---> Note : "adjust  "
+LilyNotation -> String
+
+' String-up-> prg : " input "
+prg <-left-- String : " input "
+prg <-up- GUI : " use "
+prg .up.> GUI : " output "
+GUI -right-> ls
+
+@enduml

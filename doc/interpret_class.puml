@@ -1,0 +1,27 @@
+@startuml
+
+' !include theme.puml
+hide circle
+
+interface Interpret< T > << interface >> {
+    + translate(string) -> T
+}
+
+class MusicInterpret< T = Score > implements Interpret
+
+class MusicIntInfo {
+    + key : KeySignature
+    + first_note : Note
+}
+
+class Context {
+    + note: Note
+    + scale: Scale
+    + stave_notes: Vec<Note>
+    + stack: Vec<Note>
+}
+
+MusicInterpret -down-> MusicIntInfo
+MusicInterpret *.down. Context
+
+@enduml

@@ -1,0 +1,53 @@
+@startuml
+
+' !include theme.puml
+hide circle
+' skinparam groupInheritance 4
+
+class Lilypond {
+    + version
+    + language
+}
+
+together {
+class Stave
+class Symbol
+}
+class LilyClef extends Symbol
+class LilyKey extends Symbol {
+    + type: Maj/Min
+}
+class LilyNote extends Symbol
+class LilyTime extends Symbol {
+    + nom: u8
+}
+enum LilyClefType << enum >> {
+    Treble
+    Bass
+}
+enum LilyNoteName << enum >> {
+    Ces, C, Cis,
+    Des, D, Dis,
+    ...
+}
+enum LilyNoteLength << enum >> {
+    L1, L2, L4,
+    L8, .., L128
+}
+class OctaveRelative << enum >> {
+    + type: Up/Down
+    + offset: u8
+}
+
+Lilypond o-right- "1..*" Stave : "          "
+Stave o-down- "1..*" Symbol
+
+LilyClef -down-> LilyClefType
+LilyKey -down-> LilyNoteName
+LilyTime -down-> LilyNoteLength : "denom"
+
+LilyNote -down-> LilyNoteName
+LilyNote -down-> OctaveRelative
+LilyNote -down-> LilyNoteLength
+
+@enduml

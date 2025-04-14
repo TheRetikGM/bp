@@ -9,7 +9,6 @@ pub trait LRule: Display + ToString {
     fn matches(&self, str: &str) -> bool;
     fn left(&self) -> &str;
     fn right(&self) -> &str;
-    fn p(&self) -> f32;
 }
 
 /// Represents a Context-Sensitive Stochastic L-System Rule in the
@@ -52,10 +51,6 @@ impl LRule for CSSLRule {
 
     fn right(&self) -> &str {
         &self.right
-    }
-
-    fn p(&self) -> f32 {
-        self.p
     }
 }
 

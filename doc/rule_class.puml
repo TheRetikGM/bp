@@ -1,0 +1,11 @@
+@startuml
+hide circle
+
+class Rule {
+    + left : <color:green>String</color>
+    + right : <color:green>String</color>
+    + p : <color:blue>float</color>
+    + matches(s : <color:green>String</color>) -> <color:purple>bool</color>
+}
+
+@enduml

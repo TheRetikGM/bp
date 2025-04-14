@@ -1,0 +1,72 @@
+@startuml
+
+' !include theme.puml
+hide circle
+skinparam groupInheritance 6
+
+class Symbol << abstract >>
+class KeySignature extends Symbol {
+    + type : Maj/Min
+}
+class Note extends Symbol
+class Chord extends Symbol
+class Rest extends Symbol
+class TimeSignature extends Symbol {
+    + nom : u8
+}
+class Clef extends Symbol {
+}
+enum NoteName << enum >> {
+    C, D, E, F, G, A, B
+    + next()
+    + prev()
+}
+enum NoteLength << enum >> {
+    L1, L2, L4, L8, L16,
+    L32, L64, L128
+    + half()
+    + twice()
+}
+enum ClefType << enum >> {
+    Treble
+    Bass
+}
+
+struct ScoreInfo {
+    + name
+    + author
+}
+class Score {
+    + tempo
+}
+class Stave
+class Pitch
+enum Octave << enum >> {
+    O0, O1, O2, O3, O4,
+    O5, O6, O7, O8, O9
+    + next()
+    + prev()
+}
+enum Accidental << enum >> {
+    Sharp, Flat
+}
+
+Score *-left- ScoreInfo
+Score o-right- "1..*" Stave : "        "
+Stave o-right- "      1..*" Symbol
+
+Clef *-right- ClefType
+
+KeySignature -down-> NoteName : "  base note"
+TimeSignature -down-> NoteLength : "denom    "
+Rest -down-> NoteLength
+Chord -down-> NoteLength
+Note -down-> NoteLength
+Note "1..*" <-right- Chord : "            "
+
+Note -down-> Pitch
+Pitch -left-> NoteName
+Pitch -down-> Octave
+Pitch -down-> "0..1  " Accidental
+
+@enduml

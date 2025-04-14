@@ -1,4 +1,4 @@
-//! Track definition
+//! Stave definition
 //!
 //! ### Author
 //! Jakub Kloub (xkloub03), VUT FIT

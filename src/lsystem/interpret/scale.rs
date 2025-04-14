@@ -3,7 +3,7 @@
 //! ### Author
 //! Jakub Kloub (xkloub03), VUT FIT
 
-use crate::notation::{KeySignature, KeySignatureType, NoteName, Pitch};
+use crate::notation::{KeySignature, KeySignatureType, Octave, Pitch};
 
 /// Scale a structure that helps us with moving notes in given key.
 #[derive(Debug, Clone, Copy)]
@@ -19,7 +19,7 @@ impl Scale {
 
     /// Move one note up.
     pub fn advance(&self, pitch: &mut Pitch) {
-        let ht = NoteName::halftone_count();
+        let ht = Octave::halftone_count();
         let rank = (pitch.value_halftone() + ht - self.key.note.value_halftone()) % ht;
 
         match self.key.signature_type {
@@ -33,7 +33,7 @@ impl Scale {
 
     // Move one note down.
     pub fn recede(&self, pitch: &mut Pitch) {
-        let ht = NoteName::halftone_count();
+        let ht = Octave::halftone_count();
         let rank = (pitch.value_halftone() + ht - self.key.note.value_halftone()) % ht;
 
         match self.key.signature_type {
@@ -64,9 +64,9 @@ impl Scale {
 mod tests {
     use super::*;
     use crate::notation::Accidental::*;
+    use crate::notation::NoteName::*;
     use crate::notation::Octave::*;
     use KeySignatureType::*;
-    use NoteName::*;
 
     #[test]
     fn advance_maj() {
