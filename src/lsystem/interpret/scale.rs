@@ -74,6 +74,7 @@ mod tests {
         let e_dur = KeySignature {
             note: E,
             signature_type: Maj,
+            accidental: None,
         };
         let scale = Scale { key: e_dur };
         let n1 = Pitch {
@@ -105,6 +106,7 @@ mod tests {
         let e_dur = KeySignature {
             note: E,
             signature_type: Maj,
+            accidental: None,
         };
         let scale = Scale { key: e_dur };
         let n1 = Pitch {

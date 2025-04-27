@@ -48,7 +48,7 @@ impl Display for LilyClef {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[rustfmt::skip]
 pub enum LilyNoteName {
     Ces, C, Cis,
@@ -60,44 +60,36 @@ pub enum LilyNoteName {
     Hes, H, His,
 }
 
-impl From<NoteName> for LilyNoteName {
-    fn from(note_name: NoteName) -> Self {
-        match note_name {
-            NoteName::C => LilyNoteName::C,
-            NoteName::D => LilyNoteName::D,
-            NoteName::E => LilyNoteName::E,
-            NoteName::F => LilyNoteName::F,
-            NoteName::G => LilyNoteName::G,
-            NoteName::A => LilyNoteName::A,
-            NoteName::B => LilyNoteName::H,
+impl From<(Option<Accidental>, NoteName)> for LilyNoteName {
+    fn from(value: (Option<Accidental>, NoteName)) -> Self {
+        let select = |note_names: &[LilyNoteName]| {
+            if let Some(acc) = value.0 {
+                return match acc {
+                    Accidental::Sharp => note_names[1],
+                    Accidental::Flat => note_names[2],
+                };
+            }
+
+            note_names[0]
+        };
+
+        use LilyNoteName::*;
+
+        match value.1 {
+            NoteName::C => select(&[C, Cis, Ces]),
+            NoteName::D => select(&[D, Dis, Des]),
+            NoteName::E => select(&[E, Eis, Es]),
+            NoteName::F => select(&[F, Fis, Fes]),
+            NoteName::G => select(&[G, Gis, Ges]),
+            NoteName::A => select(&[A, Ais, As]),
+            NoteName::B => select(&[H, His, Hes]),
         }
     }
 }
 
 impl From<Pitch> for LilyNoteName {
     fn from(pitch: Pitch) -> Self {
-        let select = |accidental, note_names: &[LilyNoteName]| {
-            if let Some(acc) = accidental {
-                match acc {
-                    Accidental::Sharp => note_names[1].clone(),
-                    Accidental::Flat => note_names[2].clone(),
-                }
-            } else {
-                note_names[0].clone()
-            }
-        };
-
-        use LilyNoteName::*;
-
-        match pitch.note_name {
-            NoteName::C => select(pitch.accidental, &[C, Cis, Ces]),
-            NoteName::D => select(pitch.accidental, &[D, Dis, Des]),
-            NoteName::E => select(pitch.accidental, &[E, Eis, Es]),
-            NoteName::F => select(pitch.accidental, &[F, Fis, Fes]),
-            NoteName::G => select(pitch.accidental, &[G, Gis, Ges]),
-            NoteName::A => select(pitch.accidental, &[A, Ais, As]),
-            NoteName::B => select(pitch.accidental, &[H, His, Hes]),
-        }
+        (pitch.accidental, pitch.note_name).into()
     }
 }
 
@@ -133,7 +125,7 @@ impl Display for LilyNoteName {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum LilyKeyType {
     Major,
     Minor,
@@ -161,7 +153,7 @@ impl Display for LilyKeyType {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 #[rustfmt::skip]
 pub enum LilyNoteLength {
     L1, L2, L4, L8, L16, L32, L64, L128
@@ -240,7 +232,7 @@ pub struct LilyKey {
 impl From<KeySignature> for LilyKey {
     fn from(key: KeySignature) -> Self {
         Self {
-            note: key.note.into(),
+            note: (key.accidental, key.note).into(),
             key_type: key.signature_type.into(),
         }
     }
@@ -249,6 +241,13 @@ impl From<KeySignature> for LilyKey {
 impl Display for LilyKey {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "\\key {} {}", self.note, self.key_type)
+    }
+}
+
+#[cfg(test)]
+impl PartialEq for LilyKey {
+    fn eq(&self, other: &Self) -> bool {
+        self.note == other.note && self.key_type == other.key_type
     }
 }
 
@@ -357,6 +356,43 @@ mod tests {
             }
             .to_string(),
             "\\time 6/8"
+        );
+    }
+
+    #[test]
+    fn key_into_lily() {
+        assert_eq!(
+            LilyKey::from(KeySignature {
+                note: NoteName::G,
+                accidental: None,
+                signature_type: KeySignatureType::Maj
+            }),
+            LilyKey {
+                note: LilyNoteName::G,
+                key_type: LilyKeyType::Major
+            }
+        );
+        assert_eq!(
+            LilyKey::from(KeySignature {
+                note: NoteName::F,
+                accidental: Some(Accidental::Sharp),
+                signature_type: KeySignatureType::Min
+            }),
+            LilyKey {
+                note: LilyNoteName::Fis,
+                key_type: LilyKeyType::Minor
+            }
+        );
+        assert_eq!(
+            LilyKey::from(KeySignature {
+                note: NoteName::B,
+                accidental: Some(Accidental::Flat),
+                signature_type: KeySignatureType::Maj
+            }),
+            LilyKey {
+                note: LilyNoteName::Hes,
+                key_type: LilyKeyType::Major
+            }
         );
     }
 }

@@ -159,6 +159,12 @@ impl Pitch {
     }
 }
 
+impl PartialEq for Pitch {
+    fn eq(&self, other: &Self) -> bool {
+        self.real_octave() == other.real_octave() && self.value_halftone() == other.value_halftone()
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Note {
     pub pitch: Pitch,
@@ -180,10 +186,4 @@ pub enum Symbol {
     Chord(Chord),
     Note(Note),
     Rest(NoteLength),
-}
-
-impl PartialEq for Pitch {
-    fn eq(&self, other: &Self) -> bool {
-        self.real_octave() == other.real_octave() && self.value_halftone() == other.value_halftone()
-    }
 }

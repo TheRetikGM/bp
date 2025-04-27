@@ -36,6 +36,7 @@ fn main() {
         key: KeySignature {
             note: NoteName::D,
             signature_type: KeySignatureType::Maj,
+            accidental: None,
         },
         first_note: Note {
             pitch: Pitch {
