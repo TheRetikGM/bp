@@ -1,0 +1,14 @@
+@startuml
+hide circle
+
+class Pitch
+enum NoteLength << enum >> {
+    L1, L2, L4, L8, L16,
+    L32, L64, L128
+}
+class Chord
+
+Chord -right-> "1..* " Pitch : "        "
+Chord -left-> NoteLength : "        "
+
+@enduml

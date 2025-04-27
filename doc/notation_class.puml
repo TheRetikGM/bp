@@ -55,14 +55,14 @@ Score *-left- ScoreInfo
 Score o-right- "1..*" Stave : "        "
 Stave o-right- "      1..*" Symbol
 
-Clef *-right- ClefType
+Clef *-down- ClefType
 
 KeySignature -down-> NoteName : "  base note"
 TimeSignature -down-> NoteLength : "denom    "
 Rest -down-> NoteLength
 Chord -down-> NoteLength
 Note -down-> NoteLength
-Note "1..*" <-right- Chord : "            "
+Pitch "1..* " <-up- Chord
 
 Note -down-> Pitch
 Pitch -left-> NoteName

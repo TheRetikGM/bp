@@ -1,0 +1,28 @@
+@startuml
+hide circle
+
+class Score {
+    + info : <color:green>ScoreInfo</color>
+    + tempo : <color:blue>int</color>
+}
+class Stave
+
+class Symbol << abstract >>
+' class KeySignature extends Symbol
+' class Note extends Symbol
+' class Chord extends Symbol
+' class Rest extends Symbol
+' class TimeSignature extends Symbol
+' class Clef extends Symbol
+
+Score o-right- "1..*" Stave : "        "
+Stave o-right- "1..*" Symbol : "       "
+
+KeySignature -up-|> Symbol
+Note -up-|> Symbol
+Chord -up-|> Symbol
+Rest -down-|> Symbol
+TimeSignature -down-|> Symbol
+Clef -down-|> Symbol
+
+@enduml

@@ -1,0 +1,22 @@
+@startuml
+hide circle
+
+class LSystemState {
+    + iter_count : <color:blue>int</color>
+    + word : <color:green>String</color>
+}
+
+class LSystem {
+    + axiom : <color:green>String</color>
+    + Step()
+}
+note right : Step() :\n  state.word = rewrite(state.word)\n  state.iter_count += 1
+
+class Rewriter {
+    + rewrite(s : <color:green>String</color>)  -> <color:green>String</color>
+}
+
+LSystem *-down- "1" LSystemState
+LSystem -down-> Rewriter
+
+@enduml

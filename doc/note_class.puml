@@ -1,0 +1,34 @@
+@startuml
+hide circle
+
+class Pitch
+class Note
+enum NoteName << enum >> {
+    C, D, E, F, G, A, B
+    + next() -> <color:Magenta>Self</color>
+    + prev() -> <color:Magenta>Self</color>
+}
+enum NoteLength << enum >> {
+    L1, L2, L4, L8, L16,
+    L32, L64, L128
+    + half() -> <color:Magenta>Self</color>
+    + twice() -> <color:Magenta>Self</color>
+}
+enum Octave << enum >> {
+    O0, O1, O2, O3, O4,
+    O5, O6, O7, O8, O9
+    + next() -> <color:Magenta>Self</color>
+    + prev() -> <color:Magenta>Self</color>
+}
+enum Accidental << enum >> {
+    Sharp, Flat
+}
+
+Note --> "1" Pitch : ""
+Note -right-> "1   " NoteLength : "        "
+
+Pitch -left-> "  1" Octave : "        "
+Pitch -right-> "1  " NoteName : "       "
+Pitch -up-> "0..1  " Accidental
+
+@enduml

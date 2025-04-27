@@ -1,0 +1,29 @@
+@startuml
+hide circle
+
+enum NoteLength << enum >> {
+    L1, L2, L4, L8, L16,
+    L32, L64, L128
+}
+enum NoteName << enum >> {
+    C, D, E, F, G, A, B
+}
+enum Clef << enum >> {
+    Treble, Bass
+}
+enum Accidental << enum >> {
+    Sharp, Flat
+}
+class KeySignature {
+    + Maj/Min
+}
+class TimeSignature {
+    + nom : <color:blue>int</color>
+}
+
+KeySignature -down-> NoteName
+KeySignature -left-> Clef
+KeySignature -down-> "0..1  " Accidental
+TimeSignature -down-> NoteLength : " denom"
+
+@enduml
