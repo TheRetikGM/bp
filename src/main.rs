@@ -2,6 +2,7 @@ use music_sheet_gen::{
     lily::Lilypond,
     lsystem::{interpret::*, *},
     notation::*,
+    sanitizer::Sanitizer,
 };
 
 fn main() {
@@ -49,7 +50,10 @@ fn main() {
     });
 
     // Interpret the generated string into a score
-    let score = mint.translate(ls.state().word());
+    let mut score = mint.translate(ls.state().word());
+
+    // Sanitize the interpreted score to remove any unnecessary accidentals
+    Sanitizer::sanitize(&mut score).unwrap();
 
     // Convert score into Lilypond structure.
     let lily: Lilypond = score.into();

@@ -33,7 +33,7 @@ pub enum Accidental { Sharp, Flat }
 #[rustfmt::skip] #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum NoteLength { L1, L2, L4, L8, L16, L32, L64, L128 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct KeySignature {
     pub note: NoteName,
     pub accidental: Option<Accidental>,
