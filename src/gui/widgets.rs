@@ -20,5 +20,3 @@ pub use note_edit::NoteEdit;
 pub use note_name_selector::NoteNameSelector;
 pub use octave_selector::OctaveSelector;
 pub use rule_edit::RuleEdit;
-
-pub trait Widget {}

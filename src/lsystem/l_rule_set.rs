@@ -1,6 +1,7 @@
 use std::fmt::Display;
 
 use crate::lsystem::l_rule::{CSSLRule, LRule};
+use crate::{error::Result, lsystem::l_rule::ToCSSLRule};
 
 /// Set of all rules in a given L-System
 pub trait LRuleSet: Display {
@@ -19,6 +20,23 @@ pub struct CSSLRuleSet {
 impl CSSLRuleSet {
     pub fn new(rules: Vec<CSSLRule>) -> Self {
         Self { rules }
+    }
+
+    pub fn from_str_rules(rules: &[&str]) -> Result<Self> {
+        let mut rules_parsed: Vec<CSSLRule> = vec![];
+        rules_parsed.reserve_exact(rules.len());
+
+        for r in rules.iter() {
+            rules_parsed.push(r.to_csslrule()?)
+        }
+
+        Ok(Self {
+            rules: rules_parsed,
+        })
+    }
+
+    pub fn css_rules(&self) -> &Vec<CSSLRule> {
+        &self.rules
     }
 }
 

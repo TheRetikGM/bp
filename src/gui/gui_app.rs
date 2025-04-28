@@ -5,23 +5,93 @@
 //! ### Author
 //! Jakub Kloub (xkloub03), VUT FIT
 
-// /// We derive Deserialize/Serialize so we can persist app state on shutdown.
+use std::collections::HashMap;
+
+use crate::{
+    error::Result,
+    gui::{toast, windows::*},
+    lsystem::CSSLRuleSet,
+};
+use egui_dock::{DockArea, DockState, TabViewer};
+
+#[derive(Debug)]
+pub struct GuiAppState {
+    pub rules: CSSLRuleSet,
+}
+
+impl GuiAppState {
+    pub fn apply_changes(&mut self) -> Result<()> {
+        Ok(())
+    }
+}
+
+#[derive(serde::Deserialize, serde::Serialize)]
+#[serde(default)] // if we add new fields, give them default values when deserializing old state
+struct GuiAppDocked {
+    #[serde(skip)]
+    app_state: GuiAppState,
+
+    #[serde(skip)]
+    pub tabs: HashMap<&'static str, Box<dyn DockableWindow>>,
+}
+
+impl Default for GuiAppDocked {
+    fn default() -> Self {
+        let app_state = GuiAppState {
+            rules: CSSLRuleSet::from_str_rules(&[
+                "F -> F % 1/2",
+                "F -> FF % 1/15",
+                "F -> F+F % 1/15",
+                "F -> F-F % 1/15",
+                "FF -> [Fd+F-F] % 1/40",
+                "FF -> [Fd-F+F] % 1/40",
+                "FF -> [dF+F]F % 1/40",
+                "FF -> [dF-F]F % 1/40",
+                "F+F -> [Fd+F+F] % 1/40",
+                "F-F -> [Fd-F-F] % 1/40",
+                "F+F -> [dF+F]++F % 1/40",
+                "F-F -> [dF-F]--F % 1/40",
+                "F-F -> [Fd++F]--F % 1/40",
+                "F-F -> [Fd-F]++F % 1/40",
+                "F+F -> [Fd+++F--F] % 1/40",
+                "F+F -> [Fd----F++F] % 1/40",
+            ])
+            .unwrap(),
+        };
+
+        let tabs: Vec<Box<dyn DockableWindow>> = vec![
+            Box::new(Logger {}),
+            Box::new(GrammarEdit::new(&app_state)),
+            Box::new(ScoreVisualizer {}),
+            Box::new(ControlPanel {}),
+            Box::new(InterpretParameteres {}),
+        ];
+
+        Self {
+            tabs: tabs.into_iter().map(|tab| (tab.name(), tab)).collect(),
+            app_state,
+        }
+    }
+}
+
+type Tab = String;
+
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)] // if we add new fields, give them default values when deserializing old state
 pub struct GuiApp {
-    // Example stuff:
-    label: String,
-
-    #[serde(skip)] // This how you opt-out of serialization of a field
-    value: f32,
+    dock_state: DockState<Tab>,
+    app_docked: GuiAppDocked,
 }
 
 impl Default for GuiApp {
     fn default() -> Self {
+        let app_docked = GuiAppDocked::default();
+
         Self {
-            // Example stuff:
-            label: "Hello World!".to_owned(),
-            value: 2.7,
+            dock_state: DockState::new(
+                app_docked.tabs.iter().map(|(&n, _)| n.to_owned()).collect(),
+            ),
+            app_docked,
         }
     }
 }
@@ -33,7 +103,6 @@ impl GuiApp {
         // `cc.egui_ctx.set_visuals` and `cc.egui_ctx.set_fonts`.
 
         // Load previous app state (if any).
-        // Note that you must enable the `persistence` feature for this to work.
         if let Some(storage) = cc.storage {
             return eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default();
         }
@@ -72,45 +141,28 @@ impl eframe::App for GuiApp {
             });
         });
 
-        egui::CentralPanel::default().show(ctx, |ui| {
-            // The central panel the region left after adding TopPanel's and SidePanel's
-            ui.heading("Music sheet generation");
+        egui::CentralPanel::default().show(ctx, |_ui| {
+            DockArea::new(&mut self.dock_state)
+                .style(egui_dock::Style::from_egui(ctx.style().as_ref()))
+                .show(ctx, &mut self.app_docked);
 
-            ui.horizontal(|ui| {
-                ui.label("Write something: ");
-                ui.text_edit_singleline(&mut self.label);
-            });
-
-            ui.add(egui::Slider::new(&mut self.value, 0.0..=10.0).text("value"));
-            if ui.button("Increment").clicked() {
-                self.value += 1.0;
-            }
-
-            ui.separator();
-
-            ui.add(egui::github_link_file!(
-                "https://github.com/emilk/eframe_template/blob/main/",
-                "Source code."
-            ));
-
-            ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
-                powered_by_egui_and_eframe(ui);
-                egui::warn_if_debug_build(ui);
-            });
+            toast::TOASTS.lock().unwrap().show(ctx);
         });
     }
 }
 
-fn powered_by_egui_and_eframe(ui: &mut egui::Ui) {
-    ui.horizontal(|ui| {
-        ui.spacing_mut().item_spacing.x = 0.0;
-        ui.label("Powered by ");
-        ui.hyperlink_to("egui", "https://github.com/emilk/egui");
-        ui.label(" and ");
-        ui.hyperlink_to(
-            "eframe",
-            "https://github.com/emilk/egui/tree/master/crates/eframe",
-        );
-        ui.label(".");
-    });
+impl TabViewer for GuiAppDocked {
+    type Tab = Tab;
+
+    fn title(&mut self, tab: &mut Self::Tab) -> egui::WidgetText {
+        self.tabs[tab.as_str()].name().into()
+    }
+
+    fn ui(&mut self, ui: &mut egui::Ui, tab: &mut Self::Tab) {
+        if let Some(dockable_window) = self.tabs.get_mut(tab.as_str()) {
+            dockable_window.show(ui, &mut self.app_state);
+        } else {
+            panic!("Trying to draw unknown tab '{tab}'.")
+        }
+    }
 }

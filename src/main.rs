@@ -72,7 +72,10 @@ fn old_main() {
 // When compiling natively:
 #[cfg(not(target_arch = "wasm32"))]
 fn main() -> eframe::Result {
-    env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
+    egui_logger::builder()
+        .max_level(log::LevelFilter::Debug)
+        .init()
+        .expect("Failed to initialize egui_logger");
 
     let native_options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
@@ -83,10 +86,16 @@ fn main() -> eframe::Result {
                 eframe::icon_data::from_png_bytes(&include_bytes!("../assets/icon-256.png")[..])
                     .expect("Failed to load icon"),
             ),
+        persistence_path: directories::BaseDirs::new().map(|base_dirs| {
+            base_dirs
+                .data_dir()
+                .join("music_sheet_gen")
+                .join("data.ron")
+        }),
         ..Default::default()
     };
     eframe::run_native(
-        "eframe template",
+        "Music sheet generation",
         native_options,
         Box::new(|cc| Ok(Box::new(GuiApp::new(cc)))),
     )
@@ -98,7 +107,10 @@ fn main() {
     use eframe::wasm_bindgen::JsCast as _;
 
     // Redirect `log` message to `console.log` and friends:
-    eframe::WebLogger::init(log::LevelFilter::Debug).ok();
+    egui_logger::builder()
+        .max_level(log::LevelFilter::Debug)
+        .init()
+        .expect("Failed to initialize egui_logger");
 
     let web_options = eframe::WebOptions::default();
 

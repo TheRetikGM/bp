@@ -25,7 +25,7 @@ pub struct CSSLRule {
 
 impl Display for CSSLRule {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}->{}%{}", self.left, self.right, self.p)
+        write!(f, "{} -> {} % {}", self.left, self.right, self.p)
     }
 }
 
@@ -85,18 +85,39 @@ impl CSSLRule {
     /// ```
     pub fn from(s: impl AsRef<str>) -> Result<Self> {
         let reg = Regex::new(r"^(.*?)->(.*?)%(.*?)/(.*?)$").unwrap();
+        let reg_fb = Regex::new(r"^(.*?)->(.*?)%([\d\.]*?)$").unwrap();
 
-        if let Some(captures) = reg.captures(s.without_whitespaces().as_ref()) {
+        let s_without_whitespaces = s.without_whitespaces();
+
+        if let Some(captures) = reg.captures(s_without_whitespaces.as_ref()) {
             let left = captures.captured_str(1)?.to_string();
             let right = captures.captured_str(2)?.to_string();
             let nom: i32 = captures.captured_str(3)?.parse()?;
-            let denom: i32 = captures.captured_str(4)?.parse()?;
+            let denom: i32 =
+                captures
+                    .captured_str(4)?
+                    .parse()
+                    .map_err(|err: std::num::ParseIntError| {
+                        AppError::CSSRuleParseNum(s.as_ref().to_string(), err.to_string())
+                    })?;
 
             Ok(CSSLRule {
                 left,
                 right,
                 p: nom as f32 / denom as f32,
             })
+        } else if let Some(captures) = reg_fb.captures(s_without_whitespaces.as_ref()) {
+            let left = captures.captured_str(1)?.to_string();
+            let right = captures.captured_str(2)?.to_string();
+            let p: f32 =
+                captures
+                    .captured_str(3)?
+                    .parse()
+                    .map_err(|err: std::num::ParseFloatError| {
+                        AppError::CSSRuleParseNum(s.as_ref().to_string(), err.to_string())
+                    })?;
+
+            Ok(CSSLRule { left, right, p })
         } else {
             Err(AppError::CSSRuleParse(s.as_ref().to_string()).into())
         }
