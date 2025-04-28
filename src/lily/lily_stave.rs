@@ -51,7 +51,7 @@ pub mod tests {
         .iter();
         let d_maj_notes = [D, E, Fis, G, A, H, C].iter().map(|n| {
             LilySymbol::Note(LilyNote {
-                note_name: n.clone(),
+                note_name: *n,
                 octave_relative: OctaveRelative::Up(1),
                 length: LilyNoteLength::L4,
             })

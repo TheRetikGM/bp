@@ -16,8 +16,8 @@ pub use lily_symbol::LilySymbol;
 pub use lilypond::Lilypond;
 
 use crate::notation::{
-    Accidental, Clef, KeySignature, KeySignatureType, NoteLength, NoteName, Octave, Pitch,
-    TimeSignature,
+    Accidental, Clef, ExtNoteName, KeySignature, KeySignatureType, NoteLength, NoteName, Octave,
+    Pitch, TimeSignature,
 };
 
 #[derive(Debug, Clone)]
@@ -60,10 +60,10 @@ pub enum LilyNoteName {
     Hes, H, His,
 }
 
-impl From<(Option<Accidental>, NoteName)> for LilyNoteName {
-    fn from(value: (Option<Accidental>, NoteName)) -> Self {
+impl From<ExtNoteName> for LilyNoteName {
+    fn from(ext: ExtNoteName) -> Self {
         let select = |note_names: &[LilyNoteName]| {
-            if let Some(acc) = value.0 {
+            if let Some(acc) = ext.accidental {
                 return match acc {
                     Accidental::Sharp => note_names[1],
                     Accidental::Flat => note_names[2],
@@ -75,7 +75,7 @@ impl From<(Option<Accidental>, NoteName)> for LilyNoteName {
 
         use LilyNoteName::*;
 
-        match value.1 {
+        match ext.note_name {
             NoteName::C => select(&[C, Cis, Ces]),
             NoteName::D => select(&[D, Dis, Des]),
             NoteName::E => select(&[E, Eis, Es]),
@@ -89,7 +89,7 @@ impl From<(Option<Accidental>, NoteName)> for LilyNoteName {
 
 impl From<Pitch> for LilyNoteName {
     fn from(pitch: Pitch) -> Self {
-        (pitch.accidental, pitch.note_name).into()
+        pitch.ext.into()
     }
 }
 
@@ -232,7 +232,7 @@ pub struct LilyKey {
 impl From<KeySignature> for LilyKey {
     fn from(key: KeySignature) -> Self {
         Self {
-            note: (key.accidental, key.note).into(),
+            note: key.ext.into(),
             key_type: key.signature_type.into(),
         }
     }
@@ -363,8 +363,10 @@ mod tests {
     fn key_into_lily() {
         assert_eq!(
             LilyKey::from(KeySignature {
-                note: NoteName::G,
-                accidental: None,
+                ext: ExtNoteName {
+                    note_name: NoteName::G,
+                    accidental: None,
+                },
                 signature_type: KeySignatureType::Maj
             }),
             LilyKey {
@@ -374,8 +376,10 @@ mod tests {
         );
         assert_eq!(
             LilyKey::from(KeySignature {
-                note: NoteName::F,
-                accidental: Some(Accidental::Sharp),
+                ext: ExtNoteName {
+                    note_name: NoteName::F,
+                    accidental: Some(Accidental::Sharp),
+                },
                 signature_type: KeySignatureType::Min
             }),
             LilyKey {
@@ -385,8 +389,10 @@ mod tests {
         );
         assert_eq!(
             LilyKey::from(KeySignature {
-                note: NoteName::B,
-                accidental: Some(Accidental::Flat),
+                ext: ExtNoteName {
+                    note_name: NoteName::B,
+                    accidental: Some(Accidental::Flat),
+                },
                 signature_type: KeySignatureType::Maj
             }),
             LilyKey {

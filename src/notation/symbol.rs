@@ -7,18 +7,27 @@ use crate::notation::*;
 
 #[derive(Debug, Clone, Eq)]
 pub struct Pitch {
-    pub note_name: NoteName,
+    pub ext: ExtNoteName,
     pub octave: Octave,
-    pub accidental: Option<Accidental>,
 }
 
 impl Pitch {
     pub fn new(note_name: NoteName, octave: Octave, accidental: Option<Accidental>) -> Self {
         Self {
-            note_name,
+            ext: ExtNoteName {
+                note_name,
+                accidental,
+            },
             octave,
-            accidental,
         }
+    }
+
+    pub fn note_name(&self) -> NoteName {
+        self.ext.note_name
+    }
+
+    pub fn accidental(&self) -> Option<Accidental> {
+        self.ext.accidental
     }
 
     /// Halftone value after applying accidental
@@ -40,9 +49,9 @@ impl Pitch {
     /// assert_eq!(ais.value_halftone(), 10);
     /// ```
     pub fn value_halftone(&self) -> u8 {
-        let v = self.note_name.value_halftone() + Octave::halftone_count();
+        let v = self.note_name().value_halftone() + Octave::halftone_count();
 
-        let h = match self.accidental {
+        let h = match self.accidental() {
             Some(Accidental::Sharp) => v + 1,
             Some(Accidental::Flat) => v - 1,
             None => v,
@@ -71,9 +80,9 @@ impl Pitch {
         use Accidental::*;
         use NoteName::*;
 
-        if self.note_name == C && self.accidental == Some(Flat) {
+        if self.note_name() == C && self.accidental() == Some(Flat) {
             self.octave.try_prev().unwrap()
-        } else if self.note_name == B && self.accidental == Some(Sharp) {
+        } else if self.note_name() == B && self.accidental() == Some(Sharp) {
             self.octave.try_next().unwrap()
         } else {
             self.octave
@@ -99,17 +108,17 @@ impl Pitch {
     /// assert_eq!(fes, Pitch::new(NoteName::F, Octave::O4, None));
     /// ```
     pub fn move_halftone_up(&mut self) {
-        match self.accidental {
+        match self.accidental() {
             Some(Accidental::Sharp) => {
-                if self.note_name == NoteName::B {
+                if self.note_name() == NoteName::B {
                     self.octave = self.octave.try_next().unwrap();
-                } else if self.note_name != NoteName::E {
-                    self.accidental = None;
+                } else if self.note_name() != NoteName::E {
+                    self.ext.accidental = None;
                 }
-                self.note_name = self.note_name.next();
+                self.ext.note_name = self.note_name().next();
             }
-            Some(Accidental::Flat) => self.accidental = None,
-            None => self.accidental = Some(Accidental::Sharp),
+            Some(Accidental::Flat) => self.ext.accidental = None,
+            None => self.ext.accidental = Some(Accidental::Sharp),
         }
     }
 
@@ -132,17 +141,17 @@ impl Pitch {
     /// assert_eq!(ges, Pitch::new(NoteName::F, Octave::O4, None));
     /// ```
     pub fn move_halftone_down(&mut self) {
-        match self.accidental {
-            Some(Accidental::Sharp) => self.accidental = None,
+        match self.accidental() {
+            Some(Accidental::Sharp) => self.ext.accidental = None,
             Some(Accidental::Flat) => {
-                if self.note_name == NoteName::C {
+                if self.note_name() == NoteName::C {
                     self.octave = self.octave.try_prev().unwrap();
-                } else if self.note_name != NoteName::F {
-                    self.accidental = None;
+                } else if self.note_name() != NoteName::F {
+                    self.ext.accidental = None;
                 }
-                self.note_name = self.note_name.prev();
+                self.ext.note_name = self.note_name().prev();
             }
-            None => self.accidental = Some(Accidental::Flat),
+            None => self.ext.accidental = Some(Accidental::Flat),
         }
     }
 

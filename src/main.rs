@@ -37,15 +37,19 @@ fn old_main() {
     // Create musical interpreter.
     let mint = MusicInterpret::new(MusicIntInfo {
         key: KeySignature {
-            note: NoteName::D,
+            ext: ExtNoteName {
+                note_name: NoteName::D,
+                accidental: None,
+            },
             signature_type: KeySignatureType::Maj,
-            accidental: None,
         },
         first_note: Note {
             pitch: Pitch {
-                note_name: NoteName::D,
+                ext: ExtNoteName {
+                    note_name: NoteName::D,
+                    accidental: None,
+                },
                 octave: Octave::O5,
-                accidental: None,
             },
             duration: NoteLength::L1,
         },

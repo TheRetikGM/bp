@@ -20,7 +20,7 @@ impl Scale {
     /// Move one note up.
     pub fn advance(&self, pitch: &mut Pitch) {
         let ht = Octave::halftone_count();
-        let rank = (pitch.value_halftone() + ht - self.key.note.value_halftone()) % ht;
+        let rank = (pitch.value_halftone() + ht - self.key.ext.note_name.value_halftone()) % ht;
 
         match self.key.signature_type {
             KeySignatureType::Maj => match rank {
@@ -34,7 +34,7 @@ impl Scale {
     // Move one note down.
     pub fn recede(&self, pitch: &mut Pitch) {
         let ht = Octave::halftone_count();
-        let rank = (pitch.value_halftone() + ht - self.key.note.value_halftone()) % ht;
+        let rank = (pitch.value_halftone() + ht - self.key.ext.note_name.value_halftone()) % ht;
 
         match self.key.signature_type {
             KeySignatureType::Maj => match rank {
@@ -63,24 +63,28 @@ impl Scale {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::notation::Accidental::*;
     use crate::notation::NoteName::*;
     use crate::notation::Octave::*;
+    use crate::notation::{Accidental::*, ExtNoteName};
     use KeySignatureType::*;
 
     #[test]
     fn advance_maj() {
         // Arrange
         let e_dur = KeySignature {
-            note: E,
+            ext: ExtNoteName {
+                note_name: E,
+                accidental: None,
+            },
             signature_type: Maj,
-            accidental: None,
         };
         let scale = Scale { key: e_dur };
         let n1 = Pitch {
-            note_name: G,
+            ext: ExtNoteName {
+                note_name: G,
+                accidental: Some(Sharp),
+            },
             octave: O4,
-            accidental: Some(Sharp),
         };
 
         // Act
@@ -104,15 +108,19 @@ mod tests {
     fn recede_maj() {
         // Arrange
         let e_dur = KeySignature {
-            note: E,
+            ext: ExtNoteName {
+                note_name: E,
+                accidental: None,
+            },
             signature_type: Maj,
-            accidental: None,
         };
         let scale = Scale { key: e_dur };
         let n1 = Pitch {
-            note_name: G,
+            ext: ExtNoteName {
+                note_name: G,
+                accidental: Some(Sharp),
+            },
             octave: O5,
-            accidental: Some(Sharp),
         };
 
         // Act

@@ -15,19 +15,19 @@ impl ToPrefSynonym for Pitch {
         use NoteName::*;
 
         match preffer {
-            Some(Sharp) => match (self.note_name, self.accidental) {
+            Some(Sharp) => match (self.note_name(), self.accidental()) {
                 (C, Some(Flat)) => *self = Pitch::new(B, self.octave.try_prev().unwrap(), None),
                 (F, Some(Flat)) => *self = Pitch::new(E, self.octave, None),
                 (n, Some(Flat)) => *self = Pitch::new(n.prev(), self.octave, Some(Sharp)),
                 _ => {}
             },
-            Some(Flat) => match (self.note_name, self.accidental) {
+            Some(Flat) => match (self.note_name(), self.accidental()) {
                 (B, Some(Sharp)) => *self = Pitch::new(C, self.octave.try_next().unwrap(), None),
                 (E, Some(Sharp)) => *self = Pitch::new(F, self.octave, None),
                 (n, Some(Sharp)) => *self = Pitch::new(n.next(), self.octave, Some(Flat)),
                 _ => {}
             },
-            None => match (self.note_name, self.accidental) {
+            None => match (self.note_name(), self.accidental()) {
                 (E, Some(Sharp)) => *self = Pitch::new(F, self.octave, None),
                 (F, Some(Flat)) => *self = Pitch::new(E, self.octave, None),
                 (B, Some(Sharp)) => *self = Pitch::new(C, self.octave.try_next().unwrap(), None),
@@ -51,7 +51,7 @@ mod tests {
     };
 
     fn pitch_eq(pitch: Pitch, to: (NoteName, Octave, Option<Accidental>)) -> bool {
-        pitch.note_name == to.0 && pitch.octave == to.1 && pitch.accidental == to.2
+        pitch.note_name() == to.0 && pitch.octave == to.1 && pitch.accidental() == to.2
     }
 
     #[test]
