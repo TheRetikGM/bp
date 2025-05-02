@@ -3,12 +3,10 @@
 //! ### Author
 //! Jakub Kloub (xkloub03), VUT FIT
 
-use crate::gui::View;
-
 pub struct KeyEdit;
 
-impl View for KeyEdit {
-    fn ui(&mut self, ui: &mut egui::Ui, app_state: &mut crate::gui::GuiAppState) {
+impl egui::Widget for KeyEdit {
+    fn ui(self, _ui: &mut egui::Ui) -> egui::Response {
         todo!()
     }
 }

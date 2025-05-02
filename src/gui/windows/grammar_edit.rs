@@ -5,32 +5,35 @@
 
 use crate::{
     error::Result,
-    gui::{gui_app::GuiAppState, toast, windows::DockableWindow, View},
+    gui::{
+        gui_app::GuiAppState,
+        toast,
+        widgets::{AxiomEdit, RuleEdit, RuleEditState, RuleSums},
+        windows::DockableWindow,
+        View,
+    },
     lsystem::CSSLRuleSet,
 };
 
 #[derive(Debug)]
 pub struct GrammarEdit {
-    rule_edit: crate::gui::widgets::RuleEdit,
-    axiom_edit: crate::gui::widgets::AxiomEdit,
+    rule_edit_state: RuleEditState,
+    axiom: String,
 }
 
 impl GrammarEdit {
     pub fn new(app_state: &GuiAppState) -> Self {
-        let mut s = Self {
-            rule_edit: Default::default(),
-            axiom_edit: Default::default(),
-        };
-
-        s.rule_edit.import_rules(&app_state.rules);
-
-        s
+        Self {
+            rule_edit_state: RuleEditState::new().with_rules(&app_state.rules),
+            axiom: app_state.axiom.clone(),
+        }
     }
 
     fn apply(&mut self, app_state: &mut GuiAppState) -> Result<()> {
-        self.rule_edit.check()?;
-        app_state.rules = CSSLRuleSet::new(self.rule_edit.export_rules());
+        self.rule_edit_state.check()?;
+        app_state.rules = CSSLRuleSet::new(self.rule_edit_state.rules.clone());
         app_state.apply_changes()?;
+        app_state.axiom = self.axiom.clone();
 
         Ok(())
     }
@@ -48,13 +51,27 @@ impl DockableWindow for GrammarEdit {
 
 impl View for GrammarEdit {
     fn ui(&mut self, ui: &mut egui::Ui, app_state: &mut GuiAppState) {
-        ui.collapsing("Rules", |ui| {
-            self.rule_edit.ui(ui, app_state);
-        });
+        egui::Grid::new("grid:grammar_edit")
+            .num_columns(2)
+            .striped(true)
+            .spacing([40.0, 16.0])
+            .show(ui, |ui| {
+                ui.label("Rules");
+                RuleEdit::new(&mut self.rule_edit_state).show(ui);
+                ui.end_row();
 
-        ui.collapsing("Axiom", |ui| {
-            self.axiom_edit.ui(ui, app_state);
-        });
+                ui.label("Probability sums");
+                ui.vertical(|ui| {
+                    ui.add(RuleSums::new(&self.rule_edit_state.rules));
+                });
+                ui.end_row();
+
+                ui.label("Axiom");
+                ui.vertical(|ui| {
+                    ui.add(AxiomEdit::new(&mut self.axiom));
+                });
+                ui.end_row();
+            });
 
         ui.separator();
 

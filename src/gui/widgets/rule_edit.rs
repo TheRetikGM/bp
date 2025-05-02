@@ -3,128 +3,38 @@
 //! ### Author
 //! Jakub Kloub (xkloub03), VUT FIT
 
-use std::{collections::HashMap, rc::Rc};
+use std::f32;
 
-use egui::{Color32, RichText};
-use egui_extras::{Column, TableBuilder};
+use itertools::Itertools;
 
 use crate::{
     error::AppError,
-    gui::View,
+    gui::widgets::RULE_EPS,
     lsystem::{l_rule::ToCSSLRule, CSSLRule, CSSLRuleSet},
 };
 
 #[derive(Debug, Default)]
-pub struct RuleEdit {
+pub struct RuleEditState {
     pub text: String,
-    rules: Vec<Rc<CSSLRule>>,
-    rules_map: HashMap<char, Vec<Rc<CSSLRule>>>,
+    pub rules: Vec<CSSLRule>,
 }
 
-const RULE_EPS: f32 = 0.001;
+impl RuleEditState {
+    pub fn new() -> Self {
+        Self::default()
+    }
 
-impl RuleEdit {
-    pub fn import_rules(&mut self, rules: &CSSLRuleSet) {
-        self.rules.clear();
-        self.rules_map.clear();
+    pub fn with_rules(mut self, ruleset: &CSSLRuleSet) -> Self {
         self.text.clear();
+        self.rules.clear();
 
-        for r in rules.css_rules().iter() {
-            let last_char = r.left().chars().last().unwrap();
-            let rc = Rc::new(r.clone());
-
-            self.rules.push(rc.clone());
-
-            if let Some(rules) = self.rules_map.get_mut(&last_char) {
-                rules.push(rc);
-            } else {
-                self.rules_map.insert(last_char, vec![rc]);
-            }
-
+        for r in ruleset.css_rules().iter() {
             self.text.push_str(r.to_string().as_str());
             self.text.push('\n');
+            self.rules.push(r.clone());
         }
-    }
 
-    pub fn export_rules(&self) -> Vec<CSSLRule> {
-        self.rules.iter().map(|r| r.as_ref().clone()).collect()
-    }
-
-    fn prob_sums(&mut self, ui: &mut egui::Ui, app_state: &mut crate::gui::GuiAppState) {
-        let available_height = ui.available_height();
-        let table = TableBuilder::new(ui)
-            .striped(true)
-            .resizable(false)
-            .cell_layout(egui::Layout::left_to_right(egui::Align::Center))
-            .column(Column::auto().at_least(40.0))
-            .column(Column::auto().at_least(40.0))
-            .column(Column::auto().at_least(40.0))
-            .min_scrolled_height(0.0)
-            .max_scroll_height(available_height);
-
-        let row_height = 18.0;
-        table
-            .header(20.0, |mut header| {
-                header.col(|ui| {
-                    ui.strong("Context char");
-                });
-                header.col(|ui| {
-                    ui.strong("Probability sum");
-                });
-                header.col(|ui| {
-                    ui.strong("Diff");
-                });
-            })
-            .body(|mut body| {
-                for (char, rules) in &self.rules_map {
-                    let p_sum: f32 = rules.iter().map(|r| *r.p()).sum();
-
-                    let sum_color = if (1.0 - RULE_EPS..=1.0 + RULE_EPS).contains(&p_sum) {
-                        Color32::GREEN
-                    } else {
-                        Color32::RED
-                    };
-
-                    body.row(row_height, |mut row| {
-                        row.col(|ui| {
-                            ui.label(RichText::new(char.to_string()).color(Color32::ORANGE));
-                        });
-                        row.col(|ui| {
-                            ui.label(RichText::new(p_sum.to_string()).color(sum_color));
-                        });
-                        row.col(|ui| {
-                            ui.label((1.0 - p_sum).to_string());
-                        });
-                    });
-                }
-            });
-    }
-
-    fn update_rules(&mut self) {
-        self.rules.clear();
-        self.rules_map.clear();
-
-        let non_empty_lines = self
-            .text
-            .lines()
-            .map(|l| l.trim())
-            .filter(|line| !line.is_empty());
-
-        for line in non_empty_lines {
-            let rule = Rc::new(if let Ok(r) = line.to_csslrule() {
-                r
-            } else {
-                continue;
-            });
-
-            let last_char = rule.left().chars().last().unwrap();
-            self.rules.push(rule.clone());
-            if let Some(rules) = self.rules_map.get_mut(&last_char) {
-                rules.push(rule);
-            } else {
-                self.rules_map.insert(last_char, vec![rule]);
-            }
-        }
+        self
     }
 
     pub fn check(&self) -> crate::error::Result<()> {
@@ -138,10 +48,16 @@ impl RuleEdit {
             line.to_csslrule()?;
         }
 
-        for (last_char, rules) in &self.rules_map {
-            let p_sum: f32 = rules.iter().map(|r| *r.p()).sum();
-            if !(1.0 - RULE_EPS..=1.0 + RULE_EPS).contains(&p_sum) {
-                Err(AppError::CSSRuleSumNotOne(*last_char, RULE_EPS))?
+        let rules_map = self
+            .rules
+            .iter()
+            .map(|r| (r.left().chars().last().unwrap(), r.p()))
+            .into_group_map();
+
+        for (last_char, rules) in rules_map {
+            let p_sum: f32 = rules.into_iter().sum();
+            if !(1.0 - super::RULE_EPS..=1.0 + super::RULE_EPS).contains(&p_sum) {
+                Err(AppError::CSSRuleSumNotOne(last_char, RULE_EPS))?
             }
         }
 
@@ -149,22 +65,48 @@ impl RuleEdit {
     }
 }
 
-impl View for RuleEdit {
-    fn ui(&mut self, ui: &mut egui::Ui, app_state: &mut crate::gui::GuiAppState) {
-        let text = &mut self.text;
+#[derive(Debug)]
+pub struct RuleEdit<'a> {
+    pub state: &'a mut RuleEditState,
+}
+
+impl<'a> RuleEdit<'a> {
+    pub fn new(state: &'a mut RuleEditState) -> Self {
+        Self { state }
+    }
+
+    fn update_rules(&mut self) {
+        self.state.rules.clear();
+
+        let non_empty_lines = self
+            .state
+            .text
+            .lines()
+            .map(|l| l.trim())
+            .filter(|line| !line.is_empty());
+
+        for line in non_empty_lines {
+            let rule = if let Ok(r) = line.to_csslrule() {
+                r
+            } else {
+                continue;
+            };
+
+            self.state.rules.push(rule.clone());
+        }
+    }
+
+    pub fn show(mut self, ui: &mut egui::Ui) {
+        let text = &mut self.state.text;
 
         let output = egui::TextEdit::multiline(text)
             .hint_text("Rule format: abc -> def % 1/2")
+            .desired_width(f32::INFINITY)
             .show(ui);
+        output.text_clip_rect.height();
 
         if output.response.changed() {
             self.update_rules();
         }
-
-        ui.separator();
-
-        ui.collapsing("Sum of probabilities", |ui| {
-            self.prob_sums(ui, app_state);
-        });
     }
 }

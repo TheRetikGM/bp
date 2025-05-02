@@ -21,7 +21,7 @@ impl Display for LilyStave {
             .collect::<Vec<_>>()
             .join(" ");
 
-        write!(f, "\n\\new Staff {{ {} }}\n", symbols)
+        write!(f, "\n\\new Staff {{ {symbols} }}\n")
     }
 }
 

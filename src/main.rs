@@ -1,73 +1,4 @@
-use music_sheet_gen::{
-    gui::GuiApp,
-    lily::Lilypond,
-    lsystem::{interpret::*, *},
-    notation::*,
-    sanitizer::Sanitizer,
-};
-
-// TODO: REMOVE
-fn old_main() {
-    // Create defined L-System
-    let mut ls = CSSLSystem::new(
-        "F++++F--F++F----F".to_owned(),
-        &[
-            "F -> F % 1/2",
-            "F -> FF % 1/15",
-            "F -> F+F % 1/15",
-            "F -> F-F % 1/15",
-            "FF -> [Fd+F-F] % 1/40",
-            "FF -> [Fd-F+F] % 1/40",
-            "FF -> [dF+F]F % 1/40",
-            "FF -> [dF-F]F % 1/40",
-            "F+F -> [Fd+F+F] % 1/40",
-            "F-F -> [Fd-F-F] % 1/40",
-            "F+F -> [dF+F]++F % 1/40",
-            "F-F -> [dF-F]--F % 1/40",
-            "F-F -> [Fd++F]--F % 1/40",
-            "F-F -> [Fd-F]++F % 1/40",
-            "F+F -> [Fd+++F--F] % 1/40",
-            "F+F -> [Fd----F++F] % 1/40",
-        ],
-    );
-
-    // 3 L-System rewrites.
-    (0..10).for_each(|_| ls.step());
-
-    // Create musical interpreter.
-    let mint = MusicInterpret::new(MusicIntInfo {
-        key: KeySignature {
-            ext: ExtNoteName {
-                note_name: NoteName::D,
-                accidental: None,
-            },
-            signature_type: KeySignatureType::Maj,
-        },
-        first_note: Note {
-            pitch: Pitch {
-                ext: ExtNoteName {
-                    note_name: NoteName::D,
-                    accidental: None,
-                },
-                octave: Octave::O5,
-            },
-            duration: NoteLength::L1,
-        },
-    });
-
-    // Interpret the generated string into a score
-    let mut score = mint.translate(ls.state().word());
-
-    // Sanitize the interpreted score to remove any unnecessary accidentals
-    Sanitizer::sanitize(&mut score).unwrap();
-
-    // Convert score into Lilypond structure.
-    let lily: Lilypond = score.into();
-
-    // Print out the lilypond format.
-    eprintln!("WORD: {}", ls.state().word());
-    println!("{lily}");
-}
+use music_sheet_gen::gui::{GuiApp, DIR_NAME};
 
 // When compiling natively:
 #[cfg(not(target_arch = "wasm32"))]
@@ -86,12 +17,8 @@ fn main() -> eframe::Result {
                 eframe::icon_data::from_png_bytes(&include_bytes!("../assets/icon-256.png")[..])
                     .expect("Failed to load icon"),
             ),
-        persistence_path: directories::BaseDirs::new().map(|base_dirs| {
-            base_dirs
-                .data_dir()
-                .join("music_sheet_gen")
-                .join("data.ron")
-        }),
+        persistence_path: directories::BaseDirs::new()
+            .map(|base_dirs| base_dirs.data_dir().join(DIR_NAME).join("data.ron")),
         ..Default::default()
     };
     eframe::run_native(

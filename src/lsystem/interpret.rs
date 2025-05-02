@@ -23,6 +23,32 @@ pub struct MusicInterpret {
 pub struct MusicIntInfo {
     pub key: KeySignature,
     pub first_note: Note,
+    pub time_signature: TimeSignature,
+}
+
+impl Default for MusicIntInfo {
+    fn default() -> Self {
+        Self {
+            key: KeySignature {
+                ext: crate::notation::ExtNoteName {
+                    note_name: crate::notation::NoteName::C,
+                    accidental: None,
+                },
+                signature_type: crate::notation::KeySignatureType::Maj,
+            },
+            first_note: Note {
+                pitch: crate::notation::Pitch {
+                    ext: crate::notation::ExtNoteName {
+                        note_name: crate::notation::NoteName::C,
+                        accidental: None,
+                    },
+                    octave: crate::notation::Octave::O4,
+                },
+                duration: crate::notation::NoteLength::L1,
+            },
+            time_signature: TimeSignature::c(),
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -53,7 +79,7 @@ impl Interpret<Score> for MusicInterpret {
                 symbols: [
                     Symbol::Clef(Clef::Treble),
                     Symbol::KeySignature(self.int_info.key),
-                    Symbol::TimeSignature(TimeSignature::c()),
+                    Symbol::TimeSignature(self.int_info.time_signature),
                 ]
                 .into_iter()
                 .chain(context.stave_notes.into_iter().map(Symbol::Note))
@@ -85,7 +111,7 @@ impl MusicInterpret {
             '[' => context.stack.push(context.note.clone()),
             // Pop current state from the stack.
             ']' => context.note = context.stack.pop().unwrap(),
-            s => panic!("Invalid symbol: '{:?}'", s),
+            s => panic!("Invalid symbol: '{s:?}'"),
         }
     }
 }

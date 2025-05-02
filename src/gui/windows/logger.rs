@@ -13,7 +13,7 @@ impl DockableWindow for Logger {
         "Logger"
     }
 
-    fn show(&mut self, ui: &mut egui::Ui, app_state: &mut GuiAppState) {
+    fn show(&mut self, ui: &mut egui::Ui, _app_state: &mut GuiAppState) {
         egui_logger::logger_ui().show(ui);
     }
 }

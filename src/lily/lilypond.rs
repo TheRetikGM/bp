@@ -29,7 +29,7 @@ impl Display for Lilypond {
 
         write!(
             f,
-            "\\version \"{}\"\n\\language \"{}\"\n<<{}>>",
+            "\\version \"{}\"\n\\language \"{}\"\n\\score{{{}\\layout{{}}\\midi{{}}}}",
             self.version, self.language, staves
         )
     }
@@ -62,10 +62,7 @@ mod tests {
         // Act && Assert
         assert_eq!(
             lilypond.to_string().trim(),
-            format!(
-                "\\version \"1.2.3\"\n\\language \"english\"\n<<{}{}>>",
-                d_maj, d_maj
-            )
+            format!("\\version \"1.2.3\"\n\\language \"english\"\n{{{d_maj}{d_maj}}}")
         );
     }
 }

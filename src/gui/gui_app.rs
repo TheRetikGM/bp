@@ -10,17 +10,25 @@ use std::collections::HashMap;
 use crate::{
     error::Result,
     gui::{toast, windows::*},
-    lsystem::CSSLRuleSet,
+    lsystem::{interpret::MusicIntInfo, CSSLRuleSet, CSSLSystem},
 };
 use egui_dock::{DockArea, DockState, TabViewer};
 
 #[derive(Debug)]
 pub struct GuiAppState {
     pub rules: CSSLRuleSet,
+    pub axiom: String,
+
+    pub music_int_info: MusicIntInfo,
+
+    pub l_system: CSSLSystem,
+    pub dirty: bool,
 }
 
 impl GuiAppState {
     pub fn apply_changes(&mut self) -> Result<()> {
+        self.l_system = CSSLSystem::new(self.axiom.clone(), self.rules.clone());
+
         Ok(())
     }
 }
@@ -37,33 +45,40 @@ struct GuiAppDocked {
 
 impl Default for GuiAppDocked {
     fn default() -> Self {
+        let rules = CSSLRuleSet::from_str_rules(&[
+            "F -> F % 1/2",
+            "F -> FF % 1/15",
+            "F -> F+F % 1/15",
+            "F -> F-F % 1/15",
+            "FF -> [Fd+F-F] % 1/40",
+            "FF -> [Fd-F+F] % 1/40",
+            "FF -> [dF+F]F % 1/40",
+            "FF -> [dF-F]F % 1/40",
+            "F+F -> [Fd+F+F] % 1/40",
+            "F-F -> [Fd-F-F] % 1/40",
+            "F+F -> [dF+F]++F % 1/40",
+            "F-F -> [dF-F]--F % 1/40",
+            "F-F -> [Fd++F]--F % 1/40",
+            "F-F -> [Fd-F]++F % 1/40",
+            "F+F -> [Fd+++F--F] % 1/40",
+            "F+F -> [Fd----F++F] % 1/40",
+        ])
+        .unwrap();
+        let axiom = "F++++F--F++F".to_owned();
+
         let app_state = GuiAppState {
-            rules: CSSLRuleSet::from_str_rules(&[
-                "F -> F % 1/2",
-                "F -> FF % 1/15",
-                "F -> F+F % 1/15",
-                "F -> F-F % 1/15",
-                "FF -> [Fd+F-F] % 1/40",
-                "FF -> [Fd-F+F] % 1/40",
-                "FF -> [dF+F]F % 1/40",
-                "FF -> [dF-F]F % 1/40",
-                "F+F -> [Fd+F+F] % 1/40",
-                "F-F -> [Fd-F-F] % 1/40",
-                "F+F -> [dF+F]++F % 1/40",
-                "F-F -> [dF-F]--F % 1/40",
-                "F-F -> [Fd++F]--F % 1/40",
-                "F-F -> [Fd-F]++F % 1/40",
-                "F+F -> [Fd+++F--F] % 1/40",
-                "F+F -> [Fd----F++F] % 1/40",
-            ])
-            .unwrap(),
+            l_system: CSSLSystem::new(axiom.clone(), rules.clone()),
+            rules,
+            axiom,
+            dirty: true,
+            music_int_info: MusicIntInfo::default(),
         };
 
         let tabs: Vec<Box<dyn DockableWindow>> = vec![
             Box::new(Logger {}),
             Box::new(GrammarEdit::new(&app_state)),
-            Box::new(ScoreVisualizer {}),
-            Box::new(ControlPanel {}),
+            Box::new(ScoreVisualizer::default()),
+            Box::new(ControlPanel::new(&app_state)),
             Box::new(InterpretParameteres {}),
         ];
 
@@ -119,9 +134,6 @@ impl eframe::App for GuiApp {
 
     /// Called each time the UI needs repainting, which may be many times per second.
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        // Put your widgets into a `SidePanel`, `TopBottomPanel`, `CentralPanel`, `Window` or `Area`.
-        // For inspiration and more examples, go to https://emilk.github.io/egui
-
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
             // The top panel is often a good place for a menu bar:
 

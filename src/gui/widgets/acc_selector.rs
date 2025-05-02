@@ -3,12 +3,12 @@
 //! ### Author
 //! Jakub Kloub (xkloub03), VUT FIT
 
-use crate::gui::View;
+use egui::Widget;
 
 pub struct AccSelector;
 
-impl View for AccSelector {
-    fn ui(&mut self, ui: &mut egui::Ui, app_state: &mut crate::gui::GuiAppState) {
+impl Widget for AccSelector {
+    fn ui(self, _ui: &mut egui::Ui) -> egui::Response {
         todo!()
     }
 }

@@ -13,6 +13,18 @@ pub struct LSystemState {
     word: String,
 }
 
+impl LSystemState {
+    pub fn set_iter_num(&mut self, new_iter_num: i32) -> &mut Self {
+        self.iter_num = new_iter_num;
+        self
+    }
+
+    pub fn set_word(&mut self, new_word: String) -> &mut Self {
+        self.word = new_word;
+        self
+    }
+}
+
 impl Display for LSystemState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "(iter {}): {}", self.iter_num, self.word)
@@ -28,6 +40,7 @@ pub trait LSystem: Display + std::fmt::Debug {
     fn state(&self) -> &LSystemState;
     fn state_mut(&mut self) -> &mut LSystemState;
     fn rewriter(&self) -> &impl LRewriter;
+    fn rewriter_mut(&mut self) -> &mut impl LRewriter;
 }
 
 /// Context-Sensitive Stochastic L-System
@@ -44,11 +57,22 @@ impl CSSLSystem {
     /// # Parameters
     /// - **axiom** Small string that will be expanded by rules
     /// - **rules** Stochastic context-sennsitive string rewriting rules
-    pub fn new(axiom: String, rules: &[&str]) -> Self {
+    pub fn from(axiom: String, rules: &[&str]) -> Self {
         Self {
             rewriter: CSSLRewriter::new(CSSLRuleSet::new(
                 rules.iter().map(|s| CSSLRule::from(s).unwrap()).collect(),
             )),
+            axiom: axiom.clone(),
+            state: LSystemState {
+                word: axiom,
+                iter_num: 0,
+            },
+        }
+    }
+
+    pub fn new(axiom: String, ruleset: CSSLRuleSet) -> Self {
+        Self {
+            rewriter: CSSLRewriter::new(ruleset),
             axiom: axiom.clone(),
             state: LSystemState {
                 word: axiom,
@@ -69,6 +93,9 @@ impl LSystem for CSSLSystem {
 
     fn rewriter(&self) -> &impl LRewriter {
         &self.rewriter
+    }
+    fn rewriter_mut(&mut self) -> &mut impl LRewriter {
+        &mut self.rewriter
     }
 }
 

@@ -3,7 +3,7 @@
 //! ### Author
 //! Jakub Kloub (xkloub03), VUT FIT
 
-use crate::notation::stave::Stave;
+use crate::{notation::stave::Stave, sanitizer::Sanitizer};
 
 type Tempo = u32;
 
@@ -28,5 +28,12 @@ impl Default for Score {
             info: Default::default(),
             tempo: 90,
         }
+    }
+}
+
+impl Score {
+    pub fn sanitized(mut self) -> crate::error::Result<Self> {
+        Sanitizer::sanitize(&mut self)?;
+        Ok(self)
     }
 }
