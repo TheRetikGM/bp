@@ -30,7 +30,7 @@ fn rewrite_simple() {
     let re = create_rewriter_simple();
 
     // Act
-    let res = re.rewrite("abcdef");
+    let res = re.rewrite("abcdef").0;
 
     // Assert
     assert_eq!("12c3ef", res);
@@ -42,7 +42,7 @@ fn rewrite_complex() {
     let re = create_rewriter_complex();
 
     // Act
-    let res = re.rewrite("abcdef");
+    let res = re.rewrite("abcdef").0;
 
     // Assert
     assert_eq!("553311", res);

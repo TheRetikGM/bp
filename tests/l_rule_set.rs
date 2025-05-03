@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use music_sheet_gen::lsystem::*;
 
 fn create_basic_set() -> CSSLRuleSet {
@@ -17,12 +19,12 @@ fn create_context_set() -> CSSLRuleSet {
     ])
 }
 
-fn assert_rule_eq(rule: &impl LRule, left: &str, right: &str) {
+fn assert_rule_eq(rule: &Rc<impl LRule>, left: &str, right: &str) {
     assert_eq!(rule.left(), left);
     assert_eq!(rule.right(), right);
 }
 
-fn assert_rule_any(rule: &impl LRule, rules: &[(&str, &str)]) {
+fn assert_rule_any(rule: &Rc<impl LRule>, rules: &[(&str, &str)]) {
     assert!(rules
         .iter()
         .any(|r| rule.left() == r.0 && rule.right() == r.1));
