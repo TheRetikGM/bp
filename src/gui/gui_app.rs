@@ -5,7 +5,7 @@
 //! ### Author
 //! Jakub Kloub (xkloub03), VUT FIT
 
-use std::collections::HashMap;
+use std::{collections::HashMap, rc::Rc};
 
 use crate::{
     error::Result,
@@ -23,6 +23,7 @@ pub struct GuiAppState {
 
     pub l_system: CSSLSystem,
     pub dirty: bool,
+    pub used_rules_history: Vec<Vec<Rc<crate::lsystem::CSSLRule>>>,
 }
 
 impl GuiAppState {
@@ -72,6 +73,7 @@ impl Default for GuiAppDocked {
             axiom,
             dirty: true,
             music_int_info: MusicIntInfo::default(),
+            used_rules_history: Vec::default(),
         };
 
         let tabs: Vec<Box<dyn DockableWindow>> = vec![
@@ -80,6 +82,7 @@ impl Default for GuiAppDocked {
             Box::new(ScoreVisualizer::default()),
             Box::new(ControlPanel::new(&app_state)),
             Box::new(InterpretParameteres {}),
+            Box::new(Statistics {}),
         ];
 
         Self {
@@ -156,6 +159,8 @@ impl eframe::App for GuiApp {
         egui::CentralPanel::default().show(ctx, |_ui| {
             DockArea::new(&mut self.dock_state)
                 .style(egui_dock::Style::from_egui(ctx.style().as_ref()))
+                .show_close_buttons(false)
+                .show_leaf_close_all_buttons(false)
                 .show(ctx, &mut self.app_docked);
 
             toast::TOASTS.lock().unwrap().show(ctx);

@@ -8,12 +8,14 @@ mod grammar_edit;
 mod interpret_parameters;
 mod logger;
 mod score_visualizer;
+mod statistics;
 
 pub use control_panel::ControlPanel;
 pub use grammar_edit::GrammarEdit;
 pub use interpret_parameters::InterpretParameteres;
 pub use logger::Logger;
 pub use score_visualizer::ScoreVisualizer;
+pub use statistics::Statistics;
 
 use crate::gui::gui_app::GuiAppState;
 

@@ -6,6 +6,7 @@
 use crate::{
     gui::{
         gui_app::GuiAppState,
+        utils,
         widgets::{LengthSelector, NoteNameSelector, OctaveSelector},
         windows::DockableWindow,
     },
@@ -16,17 +17,8 @@ use crate::{
 pub struct InterpretParameteres;
 
 impl InterpretParameteres {
-    fn section_name(&self, ui: &mut egui::Ui, name: &str) {
-        ui.label(
-            egui::RichText::new(name)
-                .strong()
-                .font(egui::FontId::proportional(16.0)),
-        );
-        ui.end_row();
-    }
-
     fn show_grid_contents(&mut self, ui: &mut egui::Ui, app_state: &mut GuiAppState) {
-        self.section_name(ui, "Key");
+        utils::section_name(ui, "Key");
         let info = &mut app_state.music_int_info;
 
         ui.label("Note");
@@ -41,7 +33,7 @@ impl InterpretParameteres {
         });
         ui.end_row();
 
-        self.section_name(ui, "First note");
+        utils::section_name(ui, "First note");
 
         ui.label("Pitch note");
         ui.add(NoteNameSelector::new(&mut info.first_note.pitch.ext));
@@ -55,7 +47,7 @@ impl InterpretParameteres {
         ui.add(LengthSelector::new(&mut info.first_note.duration));
         ui.end_row();
 
-        self.section_name(ui, "Time signature");
+        utils::section_name(ui, "Time signature");
 
         ui.label("Nom");
         ui.add(egui::Slider::new(

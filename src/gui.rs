@@ -171,4 +171,13 @@ pub mod utils {
 
         Ok(FluidsynthOutput { wav_path })
     }
+
+    pub fn section_name(ui: &mut egui::Ui, name: &str) {
+        ui.label(
+            egui::RichText::new(name)
+                .strong()
+                .font(egui::FontId::proportional(16.0)),
+        );
+        ui.end_row();
+    }
 }

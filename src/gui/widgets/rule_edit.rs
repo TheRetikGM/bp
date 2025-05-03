@@ -31,7 +31,7 @@ impl RuleEditState {
         for r in ruleset.css_rules().iter() {
             self.text.push_str(r.to_string().as_str());
             self.text.push('\n');
-            self.rules.push(r.clone());
+            self.rules.push(r.as_ref().clone());
         }
 
         self

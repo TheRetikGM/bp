@@ -4,8 +4,9 @@ use crate::lsystem::{
     l_rewriter::{CSSLRewriter, LRewriter},
     l_rule::CSSLRule,
     l_rule_set::CSSLRuleSet,
+    LRule, LRuleSet,
 };
-use std::fmt::Display;
+use std::{fmt::Display, rc::Rc};
 
 #[derive(Debug, Getters)]
 pub struct LSystemState {
@@ -31,16 +32,20 @@ impl Display for LSystemState {
     }
 }
 
-pub trait LSystem: Display + std::fmt::Debug {
+pub trait LSystem<R: LRule, S: LRuleSet<R>, W: LRewriter<R, S>>: Display + std::fmt::Debug {
     /// Advance the L-System by rewriting the stored word.
-    fn step(&mut self) {
-        self.state_mut().word = self.rewriter().rewrite(self.state().word.as_ref());
+    fn step(&mut self) -> Vec<Rc<R>> {
+        let rewrite_result = self.rewriter().rewrite(self.state().word.as_ref());
+
+        self.state_mut().word = rewrite_result.0;
         self.state_mut().iter_num += 1;
+
+        rewrite_result.1
     }
     fn state(&self) -> &LSystemState;
     fn state_mut(&mut self) -> &mut LSystemState;
-    fn rewriter(&self) -> &impl LRewriter;
-    fn rewriter_mut(&mut self) -> &mut impl LRewriter;
+    fn rewriter(&self) -> &W;
+    fn rewriter_mut(&mut self) -> &mut W;
 }
 
 /// Context-Sensitive Stochastic L-System
@@ -82,7 +87,7 @@ impl CSSLSystem {
     }
 }
 
-impl LSystem for CSSLSystem {
+impl LSystem<CSSLRule, CSSLRuleSet, CSSLRewriter> for CSSLSystem {
     fn state(&self) -> &LSystemState {
         &self.state
     }
@@ -91,10 +96,10 @@ impl LSystem for CSSLSystem {
         &mut self.state
     }
 
-    fn rewriter(&self) -> &impl LRewriter {
+    fn rewriter(&self) -> &CSSLRewriter {
         &self.rewriter
     }
-    fn rewriter_mut(&mut self) -> &mut impl LRewriter {
+    fn rewriter_mut(&mut self) -> &mut CSSLRewriter {
         &mut self.rewriter
     }
 }

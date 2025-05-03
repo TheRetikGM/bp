@@ -24,7 +24,9 @@ impl ControlPanel {
 
     pub fn step(&mut self, app_state: &mut GuiAppState, n: usize) {
         self.prev_word = app_state.l_system.state().word().clone();
-        (0..n).for_each(|_| app_state.l_system.step());
+        (0..n).for_each(|_| {
+            app_state.used_rules_history.push(app_state.l_system.step());
+        });
     }
 
     pub fn back(&mut self, app_state: &mut GuiAppState) {

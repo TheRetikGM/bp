@@ -1,33 +1,35 @@
-use std::fmt::Display;
+use std::{fmt::Display, rc::Rc};
 
 use crate::lsystem::l_rule::{CSSLRule, LRule};
 use crate::{error::Result, lsystem::l_rule::ToCSSLRule};
 
 /// Set of all rules in a given L-System
-pub trait LRuleSet: Display {
+pub trait LRuleSet<R: LRule>: Display {
     /// Select a matching rule from the set.
-    fn select(&self, left: &str) -> Option<&impl LRule>;
+    fn select(&self, left: &str) -> Option<&Rc<R>>;
 
-    fn rules(&self) -> &Vec<impl LRule>;
+    fn rules(&self) -> &Vec<Rc<R>>;
 }
 
 /// Rule set of Context-Sensitive Stochastic L-System
 #[derive(Debug, Clone)]
 pub struct CSSLRuleSet {
-    rules: Vec<CSSLRule>,
+    rules: Vec<Rc<CSSLRule>>,
 }
 
 impl CSSLRuleSet {
     pub fn new(rules: Vec<CSSLRule>) -> Self {
-        Self { rules }
+        Self {
+            rules: rules.into_iter().map(Rc::new).collect(),
+        }
     }
 
     pub fn from_str_rules(rules: &[&str]) -> Result<Self> {
-        let mut rules_parsed: Vec<CSSLRule> = vec![];
+        let mut rules_parsed: Vec<Rc<CSSLRule>> = vec![];
         rules_parsed.reserve_exact(rules.len());
 
         for r in rules.iter() {
-            rules_parsed.push(r.to_csslrule()?)
+            rules_parsed.push(Rc::new(r.to_csslrule()?))
         }
 
         Ok(Self {
@@ -35,16 +37,16 @@ impl CSSLRuleSet {
         })
     }
 
-    pub fn css_rules(&self) -> &Vec<CSSLRule> {
+    pub fn css_rules(&self) -> &Vec<Rc<CSSLRule>> {
         &self.rules
     }
 }
 
-impl LRuleSet for CSSLRuleSet {
+impl LRuleSet<CSSLRule> for CSSLRuleSet {
     /// Select rule by taking all matching rules, scaling the random 0..1 value
     /// to be in range 0..<sum of all rule probabilities> and selecting random
     /// rule from that.
-    fn select(&self, left: &str) -> Option<&impl LRule> {
+    fn select(&self, left: &str) -> Option<&Rc<CSSLRule>> {
         let matching_rules: Vec<_> = self.rules.iter().filter(|r| r.matches(left)).collect();
 
         let total_p: f32 = matching_rules.iter().map(|r| r.p()).sum();
@@ -60,7 +62,7 @@ impl LRuleSet for CSSLRuleSet {
             .copied()
     }
 
-    fn rules(&self) -> &Vec<impl LRule> {
+    fn rules(&self) -> &Vec<Rc<CSSLRule>> {
         &self.rules
     }
 }
