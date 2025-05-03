@@ -6,7 +6,7 @@
 use std::fmt::Display;
 
 use crate::{
-    lily::{lily_note::LilyNote, LilyClef, LilyKey, LilyTime},
+    lily::{lily_note::LilyNote, LilyClef, LilyKey, LilyTempo, LilyTime},
     notation::Symbol,
 };
 
@@ -16,6 +16,7 @@ pub enum LilySymbol {
     Key(LilyKey),
     Time(LilyTime),
     Note(LilyNote),
+    Tempo(LilyTempo),
 }
 
 impl From<Symbol> for LilySymbol {
@@ -25,6 +26,7 @@ impl From<Symbol> for LilySymbol {
             Symbol::TimeSignature(time_signature) => LilySymbol::Time(time_signature.into()),
             Symbol::KeySignature(key_signature) => LilySymbol::Key(key_signature.into()),
             Symbol::Note(note) => LilySymbol::Note(note.into()),
+            Symbol::Tempo(tempo) => LilySymbol::Tempo(tempo.into()),
             _ => todo!("Not implemented yet"),
         }
     }
@@ -37,6 +39,7 @@ impl Display for LilySymbol {
             LilySymbol::Key(sym) => sym.fmt(f),
             LilySymbol::Time(sym) => sym.fmt(f),
             LilySymbol::Note(sym) => sym.fmt(f),
+            LilySymbol::Tempo(sym) => sym.fmt(f),
         }
     }
 }

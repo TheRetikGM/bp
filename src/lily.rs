@@ -17,7 +17,7 @@ pub use lilypond::Lilypond;
 
 use crate::notation::{
     Accidental, Clef, ExtNoteName, KeySignature, KeySignatureType, NoteLength, NoteName, Octave,
-    Pitch, TimeSignature,
+    Pitch, Tempo, TimeSignature,
 };
 
 #[derive(Debug, Clone)]
@@ -220,6 +220,27 @@ impl From<TimeSignature> for LilyTime {
 impl Display for LilyTime {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "\\time {}/{}", self.nom, self.denom)
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct LilyTempo {
+    pub note_length: LilyNoteLength,
+    pub speed: u8,
+}
+
+impl From<Tempo> for LilyTempo {
+    fn from(value: Tempo) -> Self {
+        Self {
+            note_length: value.note_length.into(),
+            speed: value.speed,
+        }
+    }
+}
+
+impl Display for LilyTempo {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "\\tempo {} = {}", self.note_length, self.speed)
     }
 }
 

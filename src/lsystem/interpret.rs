@@ -1,6 +1,6 @@
 mod scale;
 
-use crate::notation::{Clef, KeySignature, Note, Score, Stave, Symbol, TimeSignature};
+use crate::notation::{Clef, KeySignature, Note, Score, Stave, Symbol, Tempo, TimeSignature};
 use scale::Scale;
 
 pub trait Interpret<T> {
@@ -24,6 +24,7 @@ pub struct MusicIntInfo {
     pub key: KeySignature,
     pub first_note: Note,
     pub time_signature: TimeSignature,
+    pub tempo: Tempo,
 }
 
 impl Default for MusicIntInfo {
@@ -47,6 +48,7 @@ impl Default for MusicIntInfo {
                 duration: crate::notation::NoteLength::L1,
             },
             time_signature: TimeSignature::c(),
+            tempo: Tempo::default(),
         }
     }
 }
@@ -79,6 +81,7 @@ impl Interpret<Score> for MusicInterpret {
                 symbols: [
                     Symbol::Clef(Clef::Treble),
                     Symbol::KeySignature(self.int_info.key),
+                    Symbol::Tempo(self.int_info.tempo),
                     Symbol::TimeSignature(self.int_info.time_signature),
                 ]
                 .into_iter()

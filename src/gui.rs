@@ -105,9 +105,9 @@ pub mod utils {
 
         if !output.status.success() {
             Err(AppError::Lily(format!(
-                "Exit code: {0}, Stdout: \n{1}",
+                "Exit code: {0}, Stderr: \n{1}",
                 output.status.code().unwrap(),
-                String::from_utf8(output.stdout).unwrap()
+                String::from_utf8(output.stderr).unwrap()
             )))?;
         }
 

@@ -61,6 +61,16 @@ impl InterpretParameteres {
             &mut info.time_signature.single_beat_note,
         ));
         ui.end_row();
+
+        utils::section_name(ui, "Tempo");
+
+        ui.label("Note length");
+        ui.add(LengthSelector::new(&mut info.tempo.note_length));
+        ui.end_row();
+
+        ui.label("Speed");
+        ui.add(egui::Slider::new(&mut info.tempo.speed, 60..=180));
+        ui.end_row();
     }
 }
 

@@ -195,4 +195,5 @@ pub enum Symbol {
     Chord(Chord),
     Note(Note),
     Rest(NoteLength),
+    Tempo(Tempo),
 }

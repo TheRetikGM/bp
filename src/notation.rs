@@ -51,6 +51,21 @@ pub struct TimeSignature {
     pub single_beat_note: NoteLength,
 }
 
+#[derive(Debug, Clone, Copy)]
+pub struct Tempo {
+    pub note_length: NoteLength,
+    pub speed: u8,
+}
+
+impl Default for Tempo {
+    fn default() -> Self {
+        Self {
+            note_length: NoteLength::L4,
+            speed: 100,
+        }
+    }
+}
+
 impl NoteName {
     pub fn next(&self) -> Self {
         match self {
