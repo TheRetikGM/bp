@@ -12,16 +12,24 @@ class MusicInterpret< T = Score > implements Interpret
 class MusicIntInfo {
     + key : KeySignature
     + first_note : Note
+    + time_signature : TimeSignature
+    + tempo : Tempo
 }
 
 class Context {
     + note: Note
-    + scale: Scale
     + stave_notes: Vec<Note>
     + stack: Vec<Note>
 }
 
+class Scale {
+    + advance(pitch)
+    + recede(pitch)
+}
+
 MusicInterpret -down-> MusicIntInfo
-MusicInterpret *.down. Context
+MusicInterpret .down.> Context : <<use>>
+Scale -up-> KeySignature
+Context -up-> Scale
 
 @enduml

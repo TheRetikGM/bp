@@ -1,0 +1,14 @@
+@startuml
+hide circle
+
+class OctaveRelative {
+    + amount : <color:blue>int</color>
+}
+
+enum OctaveRelativeType <<enum>> {
+    Up, Down
+}
+
+OctaveRelative *-right- OctaveRelativeType : "         "
+
+@enduml

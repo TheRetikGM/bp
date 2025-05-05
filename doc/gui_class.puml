@@ -1,0 +1,55 @@
+@startuml
+hide circle
+
+package "Egui & Libs" {
+    interface TabViewer <<interface>>
+    class DockArea
+    class DockState
+}
+
+package "Gui" {
+    class GuiApp
+    class GuiAppState {
+        + axiom : <color:green>String</color>
+        + dirty : <color:blue>bool</color>
+        + l_system : <color:magenta>CSSLSystem</color>
+        + rules : <color:magenta>CSSLRuleSet</color>
+        + rules_history: Vec<Vec<<color:magenta>CSSLRule</color>>>
+        + int_info : <color:magenta>MusicIntInfo</color>
+    }
+    class GuiAppDocked
+
+    package "Windows" {
+        interface Dockable <<interface>> {
+            + name() -> <color:green>String</color>
+            + show(app_state)
+        }
+
+        class GrammarEdit implements Dockable
+        class InterpretParameters implements Dockable
+        class ScoreVisualizer implements Dockable
+        class Statistics implements Dockable
+        class ControlPanel
+        class Logger
+    }
+}
+
+left to right direction
+
+ControlPanel .right.|> Dockable : "      "
+Logger .left.|> Dockable : "      "
+
+DockArea -right-> TabViewer
+GuiApp .up.> DockArea : "  <<use>>"
+DockState <-down- GuiApp
+DockState <-right- DockArea
+
+
+GuiAppDocked .up.|> TabViewer
+GuiAppDocked o-down- "0..*    " Dockable
+GuiAppDocked *-right- GuiAppState
+GuiApp -right-> GuiAppDocked
+
+Dockable .up.> GuiAppState : <<use>>
+
+@enduml
