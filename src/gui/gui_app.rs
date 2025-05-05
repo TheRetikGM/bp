@@ -18,7 +18,6 @@ use egui_dock::{DockArea, DockState, TabViewer};
 pub struct GuiAppState {
     pub rules: CSSLRuleSet,
     pub axiom: String,
-
     pub music_int_info: MusicIntInfo,
 
     pub l_system: CSSLSystem,

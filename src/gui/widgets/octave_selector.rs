@@ -15,7 +15,7 @@ impl<'a> OctaveSelector<'a> {
     }
 
     fn show_abs(&mut self, ui: &mut egui::Ui) {
-        egui::Frame::dark_canvas(ui.style()).show(ui, |ui| {
+        egui::Frame::canvas(ui.style()).show(ui, |ui| {
             use Octave::*;
             for (i, &o) in [O0, O1, O2, O3, O4, O5, O6, O7, O8].iter().enumerate() {
                 ui.selectable_value(self.octave, o, i.to_string());
@@ -24,7 +24,7 @@ impl<'a> OctaveSelector<'a> {
     }
 
     fn show_rel(&mut self, ui: &mut egui::Ui) {
-        egui::Frame::dark_canvas(ui.style()).show(ui, |ui| {
+        egui::Frame::canvas(ui.style()).show(ui, |ui| {
             use Octave::*;
 
             for (i, &o) in [O0, O1, O2, O3, O4, O5, O6, O7, O8].iter().enumerate() {

@@ -15,7 +15,7 @@ impl<'a> LengthSelector<'a> {
     }
 
     fn show(&mut self, ui: &mut egui::Ui) {
-        egui::Frame::dark_canvas(ui.style()).show(ui, |ui| {
+        egui::Frame::canvas(ui.style()).show(ui, |ui| {
             egui::Grid::new(ui.unique_id())
                 .num_columns(8)
                 .min_col_width(0.0)

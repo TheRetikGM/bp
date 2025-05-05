@@ -49,6 +49,7 @@ impl Pitch {
     /// assert_eq!(ais.value_halftone(), 10);
     /// ```
     pub fn value_halftone(&self) -> u8 {
+        // Add total number of halftones to get rid of negative values (case of C flat)
         let v = self.note_name().value_halftone() + Octave::halftone_count();
 
         let h = match self.accidental() {

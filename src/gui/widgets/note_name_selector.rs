@@ -31,7 +31,7 @@ impl<'a> NoteNameSelector<'a> {
         let acc = &mut self.ext.accidental;
 
         ui.with_layout(egui::Layout::left_to_right(Align::TOP), |ui| {
-            let frame_nn = egui::Frame::dark_canvas(ui.style());
+            let frame_nn = egui::Frame::canvas(ui.style());
 
             frame_nn.show(ui, |ui| {
                 get_grid(ui.unique_id(), 3).show(ui, |ui| {
@@ -48,7 +48,7 @@ impl<'a> NoteNameSelector<'a> {
                 });
             });
 
-            let frame_acc = egui::Frame::dark_canvas(ui.style());
+            let frame_acc = egui::Frame::canvas(ui.style());
 
             frame_acc.show(ui, |ui| {
                 get_grid(ui.unique_id(), 1).show(ui, |ui| {
