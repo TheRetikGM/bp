@@ -163,11 +163,11 @@ pub struct GuiApp {
 impl Default for GuiApp {
     fn default() -> Self {
         let app_docked = GuiAppDocked::default();
+        let dock_state =
+            DockState::new(app_docked.tabs.iter().map(|(&n, _)| n.to_owned()).collect());
 
         Self {
-            dock_state: DockState::new(
-                app_docked.tabs.iter().map(|(&n, _)| n.to_owned()).collect(),
-            ),
+            dock_state,
             app_docked,
             file_dialog: FileDialog::new(),
         }

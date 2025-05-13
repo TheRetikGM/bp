@@ -4,7 +4,7 @@
 //! Jakub Kloub (xkloub03), VUT FIT
 
 use crate::{
-    gui::{utils, windows::DockableWindow, GuiAppState},
+    gui::{utils, windows::DockableWindow, GuiAppState, TabType},
     lsystem::LSystem,
 };
 
@@ -33,7 +33,7 @@ impl Statistics {
 
 impl DockableWindow for Statistics {
     fn name(&self) -> &'static str {
-        "Statistics"
+        TabType::Statistics.as_str()
     }
 
     fn show(&mut self, ui: &mut egui::Ui, app_state: &mut crate::gui::GuiAppState) {

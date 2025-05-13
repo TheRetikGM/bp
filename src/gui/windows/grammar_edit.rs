@@ -10,7 +10,7 @@ use crate::{
         toast,
         widgets::{AxiomEdit, RuleEdit, RuleEditState, RuleSums},
         windows::DockableWindow,
-        View,
+        TabType, View,
     },
     lsystem::CSSLRuleSet,
 };
@@ -41,7 +41,7 @@ impl GrammarEdit {
 
 impl DockableWindow for GrammarEdit {
     fn name(&self) -> &'static str {
-        "Grammar edit"
+        TabType::GrammarEdit.as_str()
     }
 
     fn show(&mut self, ui: &mut egui::Ui, app_state: &mut GuiAppState) {

@@ -13,6 +13,7 @@ use crate::{
         },
         widgets::AudioPlayer,
         windows::DockableWindow,
+        TabType,
     },
     lily::Lilypond,
     lsystem::{
@@ -164,7 +165,7 @@ impl ScoreVisualizer {
 
 impl DockableWindow for ScoreVisualizer {
     fn name(&self) -> &'static str {
-        "Score visualizer"
+        TabType::ScoreVisualizer.as_str()
     }
 
     fn show(&mut self, ui: &mut egui::Ui, app_state: &mut GuiAppState) {

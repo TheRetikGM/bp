@@ -9,6 +9,7 @@ use crate::{
         toast, utils,
         widgets::{LengthSelector, NoteNameSelector, OctaveSelector},
         windows::DockableWindow,
+        TabType,
     },
     lsystem::interpret::ScaleType,
     notation::KeySignatureType,
@@ -122,7 +123,7 @@ impl InterpretParameteres {
 
 impl DockableWindow for InterpretParameteres {
     fn name(&self) -> &'static str {
-        "Interpret parameters"
+        TabType::InterpretParameters.as_str()
     }
 
     fn show(&mut self, ui: &mut egui::Ui, app_state: &mut GuiAppState) {

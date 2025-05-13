@@ -4,7 +4,7 @@
 //! Jakub Kloub (xkloub03), VUT FIT
 
 use crate::{
-    gui::{gui_app::GuiAppState, windows::DockableWindow},
+    gui::{gui_app::GuiAppState, windows::DockableWindow, TabType},
     lsystem::LSystem,
 };
 
@@ -48,7 +48,7 @@ impl ControlPanel {
 
 impl DockableWindow for ControlPanel {
     fn name(&self) -> &'static str {
-        "Control panel"
+        TabType::ControlPanel.as_str()
     }
 
     fn show(&mut self, ui: &mut egui::Ui, app_state: &mut GuiAppState) {

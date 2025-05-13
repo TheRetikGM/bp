@@ -16,6 +16,28 @@ pub trait View {
     fn ui(&mut self, ui: &mut egui::Ui, app_state: &mut GuiAppState);
 }
 
+pub enum TabType {
+    Logger,
+    GrammarEdit,
+    Statistics,
+    ScoreVisualizer,
+    InterpretParameters,
+    ControlPanel,
+}
+
+impl TabType {
+    fn as_str(&self) -> &'static str {
+        match self {
+            TabType::Logger => "Logger",
+            TabType::GrammarEdit => "Grammar edit",
+            TabType::Statistics => "Statistics",
+            TabType::ScoreVisualizer => "Score visualizer",
+            TabType::InterpretParameters => "Interpret parameters",
+            TabType::ControlPanel => "Control panel",
+        }
+    }
+}
+
 pub mod toast {
     use egui_notify::Toasts;
     use once_cell::sync::Lazy;
