@@ -6,7 +6,7 @@
 use crate::{
     gui::{
         gui_app::GuiAppState,
-        utils,
+        toast, utils,
         widgets::{LengthSelector, NoteNameSelector, OctaveSelector},
         windows::DockableWindow,
     },
@@ -40,6 +40,11 @@ impl InterpretParameteres {
             let key_type = &mut info.key_signature.signature_type;
             ui.selectable_value(key_type, KeySignatureType::Maj, "Major");
             ui.selectable_value(key_type, KeySignatureType::Min, "Minor");
+
+            if info.scale_type == ScaleType::JazzLike && *key_type == KeySignatureType::Min {
+                toast::show_info(&"Minor + Jazz-like isn't currently supported.");
+                info.scale_type = ScaleType::Basic;
+            }
         });
         ui.end_row();
 
@@ -48,6 +53,13 @@ impl InterpretParameteres {
             let scale_type = &mut info.scale_type;
             ui.selectable_value(scale_type, ScaleType::Basic, "Basic");
             ui.selectable_value(scale_type, ScaleType::JazzLike, "Jazz-like");
+
+            if *scale_type == ScaleType::JazzLike
+                && info.key_signature.signature_type == KeySignatureType::Min
+            {
+                toast::show_info(&"Minor + Jazz-like isn't currently supported.");
+                info.key_signature.signature_type = KeySignatureType::Maj;
+            }
         });
         ui.end_row();
 
