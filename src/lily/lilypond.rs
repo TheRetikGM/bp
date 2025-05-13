@@ -23,7 +23,7 @@ impl Lilypond {
 impl Default for Lilypond {
     fn default() -> Self {
         Self {
-            version: "2.25.20".to_owned(),
+            version: "2.23.20".to_owned(),
             language: "deutsch".to_owned(),
             staves: Default::default(),
         }

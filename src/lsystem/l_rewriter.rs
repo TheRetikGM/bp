@@ -1,3 +1,9 @@
+//! L-system rewriter definitions
+//!
+//! ### Author
+//! Jakub Kloub (xkloub03), VUT FIT
+
+pub struct ControlPanel;
 use std::rc::Rc;
 
 use crate::lsystem::{

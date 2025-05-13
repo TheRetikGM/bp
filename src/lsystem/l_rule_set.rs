@@ -1,3 +1,9 @@
+//! L-system ruleset definition
+//!
+//! ### Author
+//! Jakub Kloub (xkloub03), VUT FIT
+
+pub struct ControlPanel;
 use std::{fmt::Display, rc::Rc};
 
 use crate::lsystem::l_rule::{CSSLRule, LRule};

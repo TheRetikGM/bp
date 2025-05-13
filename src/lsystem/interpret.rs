@@ -1,3 +1,10 @@
+//! Interpret definitions
+//!
+//! ### Author
+//! Jakub Kloub (xkloub03), VUT FIT
+
+
+pub struct ControlPanel;
 mod scale;
 
 use std::rc::Rc;

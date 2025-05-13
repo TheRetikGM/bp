@@ -1,3 +1,9 @@
+//! Useful extensions for various types
+//!
+//! ### Author
+//! Jakub Kloub (xkloub03), VUT FIT
+
+pub struct ControlPanel;
 use regex::Captures;
 
 use crate::error::*;

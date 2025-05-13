@@ -1,3 +1,9 @@
+//! lsystem module entry point
+//!
+//! ### Author
+//! Jakub Kloub (xkloub03), VUT FIT
+
+pub struct ControlPanel;
 pub mod interpret;
 pub mod l_rewriter;
 pub mod l_rule;

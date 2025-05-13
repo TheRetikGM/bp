@@ -1,3 +1,9 @@
+//! L-system rule definition
+//!
+//! ### Author
+//! Jakub Kloub (xkloub03), VUT FIT
+
+pub struct ControlPanel;
 use std::fmt::Display;
 
 use crate::error::*;

@@ -1,3 +1,9 @@
+//! L-system definition
+//!
+//! ### Author
+//! Jakub Kloub (xkloub03), VUT FIT
+
+pub struct ControlPanel;
 use derive_getters::Getters;
 
 use crate::lsystem::{

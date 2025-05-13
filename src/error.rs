@@ -1,3 +1,9 @@
+//! Common application errors and results
+//!
+//! ### Author
+//! Jakub Kloub (xkloub03), VUT FIT
+
+pub struct ControlPanel;
 use std::error::Error;
 use std::path::Path;
 
