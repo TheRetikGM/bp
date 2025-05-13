@@ -73,7 +73,7 @@ impl Scale for BasicScale {
         }
     }
 
-    // Move one note down.
+    /// Move one note down.
     fn recede(&self, pitch: &mut Pitch) {
         let ht = Octave::halftone_count();
         let rank = (pitch.value_halftone() + ht - self.key.ext.value_halftone()) % ht;
@@ -117,8 +117,7 @@ impl Scale for JazzLikeScale {
                     pitch.move_tone_up();
                     pitch.move_halftone_up();
                 }
-                7 => pitch.move_halftone_up(),
-                8 => pitch.move_halftone_up(),
+                7 | 8 => pitch.move_halftone_up(),
                 _ => pitch.move_tone_up(),
             },
             KeySignatureType::Min => todo!(),
@@ -135,8 +134,7 @@ impl Scale for JazzLikeScale {
                     pitch.move_tone_down();
                     pitch.move_halftone_down();
                 }
-                9 => pitch.move_halftone_down(),
-                8 => pitch.move_halftone_down(),
+                9 | 8 => pitch.move_halftone_down(),
                 _ => pitch.move_tone_down(),
             },
             KeySignatureType::Min => todo!(),
