@@ -8,7 +8,9 @@ use crate::{
     gui::{
         gui_app::GuiAppState,
         toast,
-        utils::{fluidsynth_async, lilypond_async, AsyncResult, InMemoryTexture, Texture},
+        utils::{
+            fluidsynth_async, lilypond_async, AsyncResult, InMemoryTexture, Texture, ToAsyncResult,
+        },
         widgets::AudioPlayer,
         windows::DockableWindow,
     },
@@ -21,7 +23,8 @@ use crate::{
     utils::{AudioController, AudioData},
     Arguments,
 };
-use egui::{mutex::Mutex, Widget};
+use egui::Widget;
+use parking_lot::Mutex;
 use poll_promise::Promise;
 use std::{
     cmp::{max, min},
@@ -76,7 +79,7 @@ fn refresh_async(
         *async_state.lock().deref_mut() = ScoreRefreshState::TextureLoading;
         let mut textures: Vec<InMemoryTexture> = vec![];
         for t_res in lily_output.pages().iter().map(InMemoryTexture::load_from) {
-            textures.push(Into::<AsyncResult<_>>::into(t_res)?);
+            textures.push(t_res.into_async_result()?);
         }
 
         *async_state.lock().deref_mut() = ScoreRefreshState::Fluidsynth;
@@ -84,7 +87,7 @@ fn refresh_async(
             fluidsynth_async(&sf_path, lily_output.midi_path(), "score").block_and_take()?;
 
         *async_state.lock().deref_mut() = ScoreRefreshState::AudioLoading;
-        let audio_data = AsyncResult::<_>::from(AudioData::load_from(fluid_output.wav_path()))?;
+        let audio_data = AudioData::load_from(fluid_output.wav_path()).into_async_result()?;
 
         *async_state.lock().deref_mut() = ScoreRefreshState::Done;
 

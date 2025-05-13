@@ -19,14 +19,15 @@ pub trait View {
 pub mod toast {
     use egui_notify::Toasts;
     use once_cell::sync::Lazy;
-    use std::{fmt::Display, sync::Mutex, time::Duration};
+    use parking_lot::Mutex;
+    use std::{fmt::Display, time::Duration};
 
     pub static TOASTS: Lazy<Mutex<Toasts>> = Lazy::new(|| Mutex::new(Toasts::default()));
 
     pub static DURATION: u64 = 3;
 
     pub fn show_success<D: Display + ?Sized>(message: &D) {
-        let mut toasts = TOASTS.lock().unwrap();
+        let mut toasts = TOASTS.lock();
         toasts
             .success(format!("{message}").as_str())
             .duration(Some(Duration::from_secs(DURATION)));
@@ -35,7 +36,7 @@ pub mod toast {
     }
 
     pub fn show_error<D: Display + ?Sized>(message: &D) {
-        let mut toasts = TOASTS.lock().unwrap();
+        let mut toasts = TOASTS.lock();
         toasts
             .error(format!("{message}").as_str())
             .duration(Some(Duration::from_secs(DURATION)));
@@ -44,7 +45,7 @@ pub mod toast {
     }
 
     pub fn show_info(message: &impl Display) {
-        let mut toasts = TOASTS.lock().unwrap();
+        let mut toasts = TOASTS.lock();
         toasts
             .info(format!("{message}").as_str())
             .duration(Some(Duration::from_secs(DURATION)));
@@ -53,7 +54,7 @@ pub mod toast {
     }
 
     pub fn show_warn(message: &impl Display) {
-        let mut toasts = TOASTS.lock().unwrap();
+        let mut toasts = TOASTS.lock();
         toasts
             .warning(format!("{message}").as_str())
             .duration(Some(Duration::from_secs(DURATION)));

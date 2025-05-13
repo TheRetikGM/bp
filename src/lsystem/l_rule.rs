@@ -3,6 +3,7 @@ use std::fmt::Display;
 use crate::error::*;
 use crate::ext::*;
 use derive_getters::Getters;
+use once_cell::sync::Lazy;
 use regex::Regex;
 
 pub trait LRule: Display + ToString {
@@ -57,8 +58,8 @@ impl LRule for CSSLRule {
 impl CSSLRule {
     pub fn new(left: &str, right: &str, p: f32) -> Self {
         Self {
-            left: left.to_string(),
-            right: right.to_string(),
+            left: left.to_owned(),
+            right: right.to_owned(),
             p,
         }
     }
@@ -83,13 +84,21 @@ impl CSSLRule {
     /// assert!(r.right() == "def");
     /// assert!(*r.p() == 1./4.);
     /// ```
+    /// ```
+    /// # use music_sheet_gen::lsystem::l_rule::*;
+    /// let r = CSSLRule::from("abc -> def % 0.125").unwrap();
+    /// assert!(r.left() == "abc");
+    /// assert!(r.right() == "def");
+    /// assert!(*r.p() == 0.125);
+    /// ```
     pub fn from(s: impl AsRef<str>) -> Result<Self> {
-        let reg = Regex::new(r"^(.*?)->(.*?)%(.*?)/(.*?)$").unwrap();
-        let reg_fb = Regex::new(r"^(.*?)->(.*?)%([\d\.]*?)$").unwrap();
+        static REG: Lazy<Regex> = Lazy::new(|| Regex::new(r"^(.*?)->(.*?)%(.*?)/(.*?)$").unwrap());
+        static REG_FB: Lazy<Regex> =
+            Lazy::new(|| Regex::new(r"^(.*?)->(.*?)%([\d\.]*?)$").unwrap());
 
         let s_without_whitespaces = s.without_whitespaces();
 
-        if let Some(captures) = reg.captures(s_without_whitespaces.as_ref()) {
+        if let Some(captures) = REG.captures(s_without_whitespaces.as_ref()) {
             let left = captures.captured_str(1)?.to_string();
             let right = captures.captured_str(2)?.to_string();
             let nom: i32 = captures.captured_str(3)?.parse()?;
@@ -106,7 +115,7 @@ impl CSSLRule {
                 right,
                 p: nom as f32 / denom as f32,
             })
-        } else if let Some(captures) = reg_fb.captures(s_without_whitespaces.as_ref()) {
+        } else if let Some(captures) = REG_FB.captures(s_without_whitespaces.as_ref()) {
             let left = captures.captured_str(1)?.to_string();
             let right = captures.captured_str(2)?.to_string();
             let p: f32 =

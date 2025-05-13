@@ -60,43 +60,7 @@ impl GuiAppState {
     }
 }
 
-#[derive(serde::Serialize)]
-#[serde(default)]
-struct GuiAppDocked {
-    app_state: GuiAppState,
-
-    #[serde(skip)]
-    pub tabs: HashMap<&'static str, Box<dyn DockableWindow>>,
-}
-
-#[derive(serde::Deserialize)]
-struct GuiAppDockedDe {
-    app_state: GuiAppState,
-}
-
-impl<'de> serde::Deserialize<'de> for GuiAppDocked {
-    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        let app_state = GuiAppDockedDe::deserialize(deserializer)?;
-        let tabs: Vec<Box<dyn DockableWindow>> = vec![
-            Box::new(Logger {}),
-            Box::new(GrammarEdit::new(&app_state.app_state)),
-            Box::new(ScoreVisualizer::default()),
-            Box::new(ControlPanel::new(&app_state.app_state)),
-            Box::new(InterpretParameteres {}),
-            Box::new(Statistics {}),
-        ];
-
-        Ok(Self {
-            tabs: tabs.into_iter().map(|tab| (tab.name(), tab)).collect(),
-            app_state: app_state.app_state,
-        })
-    }
-}
-
-impl Default for GuiAppDocked {
+impl Default for GuiAppState {
     fn default() -> Self {
         let rules = CSSLRuleSet::from_str_rules(&[
             "F -> F % 1/2",
@@ -119,7 +83,7 @@ impl Default for GuiAppDocked {
         .unwrap();
         let axiom = "F++++F--F++F".to_owned();
 
-        let app_state = GuiAppState {
+        Self {
             l_system: CSSLSystem::new(axiom.clone(), rules.clone()),
             rules,
             axiom,
@@ -129,19 +93,57 @@ impl Default for GuiAppDocked {
             score_images: None,
             score_audio: None,
             lily_sanitizer: LilySanitizer::default(),
-        };
+        }
+    }
+}
 
-        let tabs: Vec<Box<dyn DockableWindow>> = vec![
-            Box::new(Logger {}),
-            Box::new(GrammarEdit::new(&app_state)),
-            Box::new(ScoreVisualizer::default()),
-            Box::new(ControlPanel::new(&app_state)),
-            Box::new(InterpretParameteres {}),
-            Box::new(Statistics {}),
-        ];
+#[derive(serde::Serialize)]
+#[serde(default)]
+struct GuiAppDocked {
+    app_state: GuiAppState,
+
+    #[serde(skip)]
+    pub tabs: HashMap<&'static str, Box<dyn DockableWindow>>,
+}
+
+#[derive(serde::Deserialize)]
+struct GuiAppDockedDe {
+    app_state: GuiAppState,
+}
+
+fn create_tabs(app_state: &GuiAppState) -> HashMap<&'static str, Box<dyn DockableWindow>> {
+    let tabs: Vec<Box<dyn DockableWindow>> = vec![
+        Box::new(Logger {}),
+        Box::new(GrammarEdit::new(app_state)),
+        Box::new(ScoreVisualizer::default()),
+        Box::new(ControlPanel::new(app_state)),
+        Box::new(InterpretParameteres {}),
+        Box::new(Statistics {}),
+    ];
+
+    tabs.into_iter().map(|tab| (tab.name(), tab)).collect()
+}
+
+impl<'de> serde::Deserialize<'de> for GuiAppDocked {
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let app_state = GuiAppDockedDe::deserialize(deserializer)?;
+
+        Ok(Self {
+            tabs: create_tabs(&app_state.app_state),
+            app_state: app_state.app_state,
+        })
+    }
+}
+
+impl Default for GuiAppDocked {
+    fn default() -> Self {
+        let app_state = GuiAppState::default();
 
         Self {
-            tabs: tabs.into_iter().map(|tab| (tab.name(), tab)).collect(),
+            tabs: create_tabs(&app_state),
             app_state,
         }
     }
@@ -251,7 +253,7 @@ impl eframe::App for GuiApp {
                 .show_leaf_close_all_buttons(false)
                 .show(ctx, &mut self.app_docked);
 
-            toast::TOASTS.lock().unwrap().show(ctx);
+            toast::TOASTS.lock().show(ctx);
 
             self.file_dialog.update(ctx);
             if let Some(path) = self.file_dialog.take_picked() {

@@ -121,13 +121,6 @@ impl Scale for JazzLikeScale {
         let ht = Octave::halftone_count();
         let rank = (pitch.value_halftone() + ht - self.key.ext.value_halftone()) % ht;
 
-        log::info!(
-            "rank = {}, pitch = {:?}, key = {:?}",
-            rank,
-            pitch,
-            self.key.signature_type
-        );
-
         match self.key.signature_type {
             KeySignatureType::Maj => match rank {
                 0 | 5 => {

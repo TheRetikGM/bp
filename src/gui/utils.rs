@@ -185,8 +185,8 @@ pub enum AsyncResult<T> {
     Err(String),
 }
 
-impl<T> From<crate::error::Result<T>> for AsyncResult<T> {
-    fn from(value: crate::error::Result<T>) -> Self {
+impl<T, R: ToString> From<std::result::Result<T, R>> for AsyncResult<T> {
+    fn from(value: std::result::Result<T, R>) -> Self {
         match value {
             Ok(v) => AsyncResult::Ok(v),
             Err(e) => AsyncResult::Err(e.to_string()),
@@ -216,6 +216,16 @@ impl<T> std::ops::Try for AsyncResult<T> {
             AsyncResult::Ok(v) => std::ops::ControlFlow::Continue(v),
             AsyncResult::Err(e) => std::ops::ControlFlow::Break(AsyncResult::Err(e)),
         }
+    }
+}
+
+pub trait ToAsyncResult<T> {
+    fn into_async_result(self) -> AsyncResult<T>;
+}
+
+impl<T, R: ToString> ToAsyncResult<T> for std::result::Result<T, R> {
+    fn into_async_result(self) -> AsyncResult<T> {
+        self.into()
     }
 }
 
