@@ -24,5 +24,6 @@ Chord -up-|> Symbol
 Rest -down-|> Symbol
 TimeSignature -down-|> Symbol
 Clef -down-|> Symbol
+Tempo -left-|> Symbol : "     "
 
 @enduml
