@@ -32,6 +32,7 @@ egui_dock = { version = "0.16.0", features = ["serde"] }
 image = "0.25.6"
 fs = "0.0.5"
 poll-promise = "0.3.0"
+parking_lot = "0.12.3"
 
 # You only need serde if you want app persistence:
 serde = { version = "1.0.219", features = ["derive"] }

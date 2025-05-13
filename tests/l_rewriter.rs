@@ -47,3 +47,25 @@ fn rewrite_complex() {
     // Assert
     assert_eq!("553311", res);
 }
+
+#[test]
+fn rewrite_doc_example() {
+    // Arrange
+    let re = CSSLRewriter::new(CSSLRuleSet::new(
+        [
+            "2h -> 1 % 1/1",
+            "efg -> 2 % 1/1",
+            "def -> 3 % 1/1",
+            "bcd -> 4 % 1/1",
+        ]
+        .iter()
+        .map(|r| r.to_csslrule().unwrap())
+        .collect(),
+    ));
+
+    // Act
+    let res = re.rewrite("abcdefgh").0;
+
+    // Assert
+    assert_eq!(res, "a42h");
+}
