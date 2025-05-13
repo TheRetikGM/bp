@@ -4,10 +4,20 @@
 //! Jakub Kloub (xkloub03), VUT FIT
 
 pub struct ControlPanel;
-use music_sheet_gen::gui::{GuiApp, DIR_NAME};
+use music_sheet_gen::{
+    gui::{GuiApp, DIR_NAME},
+    Arguments,
+};
 
 // When compiling natively:
 fn main() -> eframe::Result {
+    if let Err(e) = Arguments::new() {
+        eprintln!("error: {e}\n");
+        Arguments::help();
+
+        return Ok(());
+    }
+
     egui_logger::builder()
         .max_level(log::LevelFilter::Debug)
         .init()

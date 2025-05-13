@@ -37,4 +37,9 @@ impl Arguments {
 
         Ok(args)
     }
+
+    pub fn help() {
+        let args: Vec<String> = env::args().collect();
+        eprintln!("USAGE: {} <path to sf2 virtual piano>", args[0]);
+    }
 }
