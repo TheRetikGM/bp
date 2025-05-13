@@ -6,6 +6,7 @@
 - xlogin: **xkloub03**
 - Vedoucí práce (supervisor): **prof. RNDr. ALEXANDR MEDUNA, CSc.**
 - Datum (date): **BRNO 2025**
+- Odkaz na [github](https://github.com/theretikgm/bp) (kvůlí assetům)
 
 
 ## Otestováno
