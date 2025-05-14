@@ -59,9 +59,11 @@
 ## Sestavení a spuštění
 
 ```bash
-cargo test
-cargo run -- assets/Nice-Steinway-Lite-v3.0.sf2
+cargo test --release
+cargo run --release -- assets/Nice-Steinway-Lite-v3.0.sf2
 ```
+
+- Note that the tab layout has to be customized to your liking on the first run.
 
 ## Adresářová struktura
 
@@ -126,3 +128,8 @@ tests ............................................. Modulární testy
 ├── l_rewriter.rs ................................. Testy integrace třídy CSSLRewriter
 └── l_rule_set.rs ................................. Testy integrace třídy LRuleSet
 ```
+
+## Assets
+
+- Virtual piano source: [here](https://huggingface.co/datasets/projectlosangeles/soundfonts4u/blob/main/Nice-Steinway-Lite-v3.0.sf2) (free)
+- Icon: custom made
