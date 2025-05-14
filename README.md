@@ -8,6 +8,10 @@
 - Datum (date): **BRNO 2025**
 - Odkaz na [github](https://github.com/theretikgm/bp) (kvůlí assetům)
 
+## Příklady aplikace
+
+![screenshot-dark](assets/screenshot-dark.png)
+![screenshot-light](assets/screenshot-light.png)
 
 ## Otestováno
 
