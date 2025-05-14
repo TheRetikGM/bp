@@ -14,6 +14,7 @@ use crate::lsystem::{
 };
 use std::{fmt::Display, rc::Rc};
 
+/// Holds the L-system state needed for rewrites and statistics.
 #[derive(Debug, Getters, serde::Deserialize, serde::Serialize)]
 pub struct LSystemState {
     iter_num: i32,
@@ -38,6 +39,7 @@ impl Display for LSystemState {
     }
 }
 
+/// Generic L-system that uses given Rewriter.
 pub trait LSystem<R: LRule, S: LRuleSet<R>, W: LRewriter<R, S>>: Display + std::fmt::Debug {
     /// Advance the L-System by rewriting the stored word.
     fn step(&mut self) -> Vec<Rc<R>> {

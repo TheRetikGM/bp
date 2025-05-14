@@ -14,6 +14,7 @@ use NoteName::*;
 
 pub struct ScoreSanitizer;
 
+/// Score internal structure sanitizer.
 impl Sanitizer<Score> for ScoreSanitizer {
     fn sanitize(&self, score: &mut Score) -> Result<()> {
         for stave in score.staves.iter_mut() {
@@ -25,6 +26,7 @@ impl Sanitizer<Score> for ScoreSanitizer {
 }
 
 impl ScoreSanitizer {
+    /// Convert pitch to its preffered accidental.
     fn pitch_to_pref(&self, pref: Option<Accidental>, pitch: &mut crate::notation::Pitch) {
         match pref {
             Some(Sharp) => match (pitch.note_name(), pitch.accidental()) {
@@ -41,6 +43,7 @@ impl ScoreSanitizer {
         }
     }
 
+    /// Sanitize all stave symbols.
     fn sanitize_stave(&self, stave: &mut Stave) -> Result<()> {
         let (key, key_pos) = self.find_first_key(stave)?;
         let mut preffered_accidental = self.get_pref_accidental(key);
@@ -62,6 +65,7 @@ impl ScoreSanitizer {
         Ok(())
     }
 
+    /// Find first key signature in the stave.
     fn find_first_key<'a>(&self, stave: &'a Stave) -> Result<(&'a KeySignature, usize)> {
         for (i, sym) in stave.symbols.iter().enumerate() {
             match sym {
@@ -74,6 +78,7 @@ impl ScoreSanitizer {
         Err(AppError::StaveKeyNotFound)?
     }
 
+    /// Get preffered accidental for given key.
     fn get_pref_accidental(&self, key: &KeySignature) -> Option<Accidental> {
         if SHARP_KEYS.iter().any(|x| x == key) {
             Some(Accidental::Sharp)

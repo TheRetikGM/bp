@@ -1,3 +1,9 @@
+//! CSSLRewriter integration tests
+//!
+//! ### Author
+//! Jakub Kloub (xkloub03), VUT FIT
+
+pub struct ControlPanel;
 use music_sheet_gen::lsystem::{l_rule::ToCSSLRule, *};
 
 fn create_rewriter_simple() -> CSSLRewriter {

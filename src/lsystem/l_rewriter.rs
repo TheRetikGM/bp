@@ -12,14 +12,17 @@ use crate::lsystem::{
     CSSLRule,
 };
 
+/// Generic rewriter using the given ruleset.
 pub trait LRewriter<R: LRule, S: LRuleSet<R>> {
     fn rules(&self) -> &S;
     fn max_lside_len(&self) -> i32;
 
+    /// Rewrite the given L-system string and return the new string and used rules.
     fn rewrite(&self, s: &str) -> (String, Vec<Rc<R>>) {
+        // We start from the right (right derivation).
         let mut i = s.len() as i32 - 1;
+        // Store used left sides of rules for future new string construction.
         let mut res: Vec<&str> = Vec::new();
-
         let mut used_rules: Vec<Rc<R>> = vec![];
 
         loop {
@@ -48,6 +51,8 @@ pub trait LRewriter<R: LRule, S: LRuleSet<R>> {
             }
         }
 
+        // As the rules were added from the right to left, we need to
+        // concat them in reverse order.
         res.reverse();
         (res.join(""), used_rules)
     }

@@ -1,3 +1,9 @@
+//! CSSLRule integration tests
+//!
+//! ### Author
+//! Jakub Kloub (xkloub03), VUT FIT
+
+pub struct ControlPanel;
 use std::rc::Rc;
 
 use music_sheet_gen::lsystem::*;

@@ -9,6 +9,7 @@ use crate::{
     sanitizer::Sanitizer,
 };
 
+/// Lilypond internal structure sanitizer.
 #[derive(Debug, Clone, serde::Deserialize, serde::Serialize)]
 pub struct LilySanitizer {
     pub max_line_notes: u8,
@@ -35,6 +36,7 @@ impl Sanitizer<Lilypond> for LilySanitizer {
 }
 
 impl LilySanitizer {
+    /// Sanitize LilyPond stave by adding line breaks.
     fn sanitize_stave(&self, stave: &mut LilyStave) -> Result<()> {
         let time = self
             .find_time_sig(stave)
@@ -78,6 +80,7 @@ impl LilySanitizer {
         Ok(())
     }
 
+    /// Find first time signature, so that it can used the bar timing for bar counting.
     fn find_time_sig<'a>(&self, stave: &'a LilyStave) -> Option<&'a LilyTime> {
         stave.symbols.iter().find_map(|s| match s {
             crate::lily::LilySymbol::Time(t) => Some(t),

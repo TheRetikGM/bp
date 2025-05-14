@@ -44,6 +44,7 @@ const FLAT_KEYS: [KeySignature; 11] = [
     KeySignature { ext: ExtNoteName { note_name: F, accidental: Some(Sharp) }, signature_type: Maj },
 ];
 
+/// Generic sanitizer trait used by all sanitizers.
 pub trait Sanitizer<T> {
     fn sanitize(&self, score: &mut T) -> Result<()>;
 }

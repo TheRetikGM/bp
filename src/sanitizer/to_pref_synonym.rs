@@ -6,10 +6,15 @@
 use crate::notation::{Accidental, NoteName, Pitch};
 
 pub trait ToPrefSynonym {
+    /// Convert to preffered equivalent note with given accidental.
     fn to_pref_synonym(&mut self, preffer: Option<Accidental>);
 }
 
 impl ToPrefSynonym for Pitch {
+    /// Convert to preffered equivalent note with given accidental.
+    ///
+    /// ## Example
+    /// D-flat.to_pref_synonym(Sharp) gives C-sharp
     fn to_pref_synonym(&mut self, preffer: Option<Accidental>) {
         use Accidental::*;
         use NoteName::*;

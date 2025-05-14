@@ -3,7 +3,6 @@
 //! ### Author
 //! Jakub Kloub (xkloub03), VUT FIT
 
-
 pub struct ControlPanel;
 mod scale;
 
@@ -17,10 +16,12 @@ use scale::Scale;
 
 pub use scale::ScaleType;
 
+/// Generic interpret translating any string to T.
 pub trait Interpret<T> {
     fn translate(&self, string: &str) -> T;
 }
 
+/// Music interpret translating L-system string to Score.
 #[derive(Debug, Clone)]
 pub struct MusicInterpret {
     pub int_info: MusicIntInfo,
@@ -71,6 +72,7 @@ impl Default for MusicIntInfo {
     }
 }
 
+/// State managed by the MusicInterpret during translation.
 #[derive(Debug, Clone)]
 struct Context {
     /// Current note that is to be written to the score
@@ -84,7 +86,9 @@ struct Context {
 }
 
 impl Interpret<Score> for MusicInterpret {
+    /// Translate the given L-system string to Score.
     fn translate(&self, string: &str) -> Score {
+        // Create state.
         let mut context = Context {
             scale: match self.int_info.scale_type {
                 ScaleType::Basic => Rc::new(BasicScale::new(self.int_info.key_signature)),
@@ -95,8 +99,10 @@ impl Interpret<Score> for MusicInterpret {
             stack: Default::default(),
         };
 
+        // Translate L-system string.
         string.chars().for_each(|c| self.action(&mut context, c));
 
+        // Compile the resulting score.
         Score {
             staves: vec![Stave {
                 symbols: [
@@ -119,6 +125,10 @@ impl MusicInterpret {
         Self { int_info }
     }
 
+    /// State-modifying action based on the L-system character from its alphabet.
+    ///
+    /// ## TODO
+    /// Maybe this could be customized from the UI in the future.
     fn action(&self, context: &mut Context, symbol: char) {
         match symbol {
             // Write the current note into the score.
